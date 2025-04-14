@@ -1,0 +1,1 @@
+<form method='POST'>{% for store in stores %}<div>{{ store[0] }} <select name='{{ store[0] }}'><option value='1'>Grocery</option><option value='__new__'>New Category</option></select><input name='new_{{ store[0] }}'></div>{% endfor %}<button>Save</button></form>

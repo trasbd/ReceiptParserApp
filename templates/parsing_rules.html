@@ -1,0 +1,1 @@
+<form method='POST'><input name='keyword'><input name='date_regex'><input name='total_regex'><button>Add Rule</button></form>{% for rule in rules %}<div>{{ rule.keyword }} - {{ rule.date_regex }} - {{ rule.total_regex }}</div>{% endfor %}

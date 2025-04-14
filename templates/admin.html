@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin View</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #aaa; text-align: left; }
+    </style>
+</head>
+<body>
+<h1>Parsed Receipts</h1>
+
+<form method="GET">
+    <label for="filter">Filter:</label>
+    <select name="filter" id="filter">
+        <option value="all" {% if filter == 'all' %}selected{% endif %}>All Time</option>
+        <option value="day" {% if filter == 'day' %}selected{% endif %}>Today</option>
+        <option value="week" {% if filter == 'week' %}selected{% endif %}>This Week</option>
+        <option value="month" {% if filter == 'month' %}selected{% endif %}>This Month</option>
+        <option value="range" {% if filter == 'range' %}selected{% endif %}>Custom Range</option>
+    </select>
+    <label>From: <input type="date" name="start_date" value="{{ start_date }}"></label>
+    <label>To: <input type="date" name="end_date" value="{{ end_date }}"></label>
+    <button type="submit">Apply</button>
+</form>
+
+<p><strong>Running Total:</strong> ${{ total }}</p>
+
+<table>
+<thead><tr>
+{% for header in headers %}<th>{{ header }}</th>{% endfor %}
+</tr></thead><tbody>
+{% for receipt in receipts %}
+<tr>
+<td>{{ receipt.store }}</td>
+<td>{{ receipt.date }}</td>
+<td>${{ "%.2f"|format(receipt.total) }}</td>
+<td>{{ receipt.category.name if receipt.category else "Uncategorized" }}</td>
+<td>
+{% if receipt.image_filename %}
+<img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" width="100"><br>
+{% else %}No Image<br>{% endif %}
+<a href="{{ url_for('edit_receipt', receipt_id=receipt.id) }}">Edit</a>
+</td>
+</tr>
+{% endfor %}
+</tbody></table>
+<a href="/">Upload</a> | <a href="/categories">Categories</a>
+</body>
+</html>
