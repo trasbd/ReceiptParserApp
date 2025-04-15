@@ -42,6 +42,19 @@
             }
         }
 
+        .receipt-thumb {
+            max-height: 150px;
+            /* limit how much of the image shows */
+            overflow: hidden;
+            display: block;
+        }
+
+        .receipt-thumb img {
+            display: block;
+            object-fit: cover;
+            width: 100%;
+            max-width: 100%;
+        }
     </style>
 </head>
 
@@ -97,31 +110,34 @@
             <tbody>
                 {% for receipt in receipts %}
                 <tr>
-                  <td>{{ receipt.store }}</td>
-                  <td>{{ receipt.date }}</td>
-                  <td>${{ "%.2f"|format(receipt.total) }}</td>
-                  <td>{{ receipt.category.name if receipt.category else "Uncategorized" }}</td>
-                  <td>
-                    {% if receipt.image_filename %}
-                      <a class="modal-trigger" href="#modal-{{ loop.index }}">
-                        <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" width="100">
-                      </a>
-              
-                      <!-- 🧠 This MUST be inside the loop so loop.index exists -->
-                      <div id="modal-{{ loop.index }}" class="modal">
-                        <div class="modal-content center-align">
-                          <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" style="max-width: 100%;">
+                    <td>{{ receipt.store }}</td>
+                    <td>{{ receipt.date }}</td>
+                    <td>${{ "%.2f"|format(receipt.total) }}</td>
+                    <td>{{ receipt.category.name if receipt.category else "Uncategorized" }}</td>
+                    <td>
+                        {% if receipt.image_filename %}
+                        <div class="receipt-thumb">
+                        <a class="modal-trigger" href="#modal-{{ loop.index }}">
+                            <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}"
+                                width="100">
+                        </a>
                         </div>
-                      </div>
-                    {% else %}
-                      No Image<br>
-                    {% endif %}
-                    <a href="{{ url_for('edit_receipt', receipt_id=receipt.id) }}" class="btn-small grey darken-1">Edit</a>
-                  </td>
+                        <div id="modal-{{ loop.index }}" class="modal">
+                            <div class="modal-content center-align">
+                                <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}"
+                                    style="max-width: 100%;">
+                            </div>
+                        </div>
+                        {% else %}
+                        No Image<br>
+                        {% endif %}
+                        <a href="{{ url_for('edit_receipt', receipt_id=receipt.id) }}"
+                            class="btn-small grey darken-1">Edit</a>
+                    </td>
                 </tr>
                 {% endfor %}
-              </tbody>
-              
+            </tbody>
+
         </table>
 
 
@@ -140,12 +156,12 @@
         });
     </script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-          const modals = document.querySelectorAll('.modal');
-          M.Modal.init(modals);
+        document.addEventListener('DOMContentLoaded', function () {
+            const modals = document.querySelectorAll('.modal');
+            M.Modal.init(modals);
         });
-      </script>
-      
+    </script>
+
 
 </body>
 
