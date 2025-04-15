@@ -1,1 +1,11 @@
-<form method='POST' enctype='multipart/form-data'><input type="file" name="receipt" accept="image/*,.pdf" required><button>Upload</button></form>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Receipt Parser</title>
+    <script type="module" src="{{ url_for('serve_static', filename='index.js') }}"></script>
+  </head>
+  <body>
+    <div id="app-root"></div>
+  </body>
+</html>

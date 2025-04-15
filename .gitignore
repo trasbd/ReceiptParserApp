@@ -2,3 +2,4 @@ __pycache__*
 uploads*
 poppler*
 receipts.db
+node_modules*
