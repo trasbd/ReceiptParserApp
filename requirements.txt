@@ -3,3 +3,4 @@ flask_sqlalchemy
 opencv-python
 pytesseract
 Pillow
+pdf2image
