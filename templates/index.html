@@ -1,11 +1,52 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Receipt Parser</title>
-    <script type="module" src="{{ url_for('serve_static', filename='index.js') }}"></script>
-  </head>
-  <body>
-    <div id="app-root"></div>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Receipt</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Materialize CSS & Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" defer></script>
+</head>
+<body class="grey lighten-4">
+
+<div class="container" style="margin-top: 50px;">
+    <h5 class="center-align">Upload or Snap a Receipt</h5>
+
+    <form method="POST" enctype="multipart/form-data" class="card-panel">
+      <div class="file-field input-field">
+        <div class="row">
+      
+          <!-- Upload button centered and spaced -->
+          <div class="col s12" style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <div class="btn blue">
+              <span><i class="material-icons left">photo_camera</i>Upload</span>
+              <input type="file" name="receipt" accept="image/*,.pdf" capture="environment" required>
+            </div>
+          </div>
+      
+          <!-- File path field with spacing -->
+          <div class="col s12" style="margin-bottom: 30px;">
+            <div class="file-path-wrapper">
+              <input class="file-path validate" type="text" placeholder="Take a photo or choose a file">
+            </div>
+          </div>
+      
+          <!-- Submit button centered -->
+          <div class="col s12" style="display: flex; justify-content: center;">
+            <button type="submit" class="btn waves-effect waves-light green">
+              Submit
+              <i class="material-icons right">send</i>
+            </button>
+          </div>
+      
+        </div>
+      </div>
+      
+    </form>
+</div>
+
+</body>
 </html>
