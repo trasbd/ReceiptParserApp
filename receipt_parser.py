@@ -6,17 +6,24 @@ import re
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-def extract_text_from_image(image_path):
+def extract_text_from_image(filepath):
     text = ""
-    if image_path.lower().endswith(".pdf"):
-        images = convert_from_path(image_path, first_page=1, last_page=1)
-        for img in images:
-            text += pytesseract.image_to_string(img)
+    filename = os.path.basename(filepath)
+
+    if filepath.lower().endswith(".pdf"):
+        images = convert_from_path(filepath, first_page=1, last_page=1)
+        if images:
+            image = images[0]
+            image_filename = filename.replace(".pdf", ".jpg")
+            save_path = os.path.join("static/uploads", image_filename)
+            image.save(save_path, "JPEG")
+            text = pytesseract.image_to_string(image)
+            return text, image_filename
     else:
-        img = cv2.imread(image_path)
+        img = cv2.imread(filepath)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         text = pytesseract.image_to_string(gray)
-    return text
+        return text, filename
 
 
 def parse_walmart(text):
@@ -66,14 +73,20 @@ def extract_total(text):
                 return match.group()
     return "Total not found"
 
-def parse_receipt(image_path):
-    text = extract_text_from_image(image_path)
+def parse_receipt(filepath):
+    text, image_filename = extract_text_from_image(filepath)
     lower = text.lower()
-    for key, func in STORE_PARSERS.items():
+
+    for key, parser in STORE_PARSERS.items():
         if key in lower:
-            return func(text)
+            result = parser(text)
+            result["image_filename"] = image_filename
+            return result
+
     return {
         "store": extract_store_name(text),
         "date": extract_date(text),
-        "total": extract_total(text)
+        "total": extract_total(text),
+        "image_filename": image_filename
     }
+
