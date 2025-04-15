@@ -154,6 +154,14 @@ def categories():
 
     return render_template("categories.html", stores=stores, categories=categories)
 
+@app.route("/delete/<int:receipt_id>", methods=["POST"])
+def delete_receipt(receipt_id):
+    receipt = Receipt.query.get_or_404(receipt_id)
+    db.session.delete(receipt)
+    db.session.commit()
+    return redirect(url_for("admin"))
+
+
 
 if __name__ == "__main__":
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
