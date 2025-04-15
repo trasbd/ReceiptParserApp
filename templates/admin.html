@@ -1,50 +1,133 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+    <meta charset="UTF-8">
     <title>Admin View</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Materialize CSS & Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" defer></script>
+
     <style>
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 10px; border: 1px solid #aaa; text-align: left; }
+        body {
+            padding: 2rem;
+            background-color: #f9f9f9;
+        }
+
+        table {
+            table-layout: fixed;
+            width: 100%;
+            word-wrap: break-word;
+        }
+
+        th,
+        td {
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        td img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        @media screen and (max-width: 600px) {
+            td img {
+                display: none;
+            }
+        }
     </style>
 </head>
+
 <body>
-<h1>Parsed Receipts</h1>
 
-<form method="GET">
-    <label for="filter">Filter:</label>
-    <select name="filter" id="filter">
-        <option value="all" {% if filter == 'all' %}selected{% endif %}>All Time</option>
-        <option value="day" {% if filter == 'day' %}selected{% endif %}>Today</option>
-        <option value="week" {% if filter == 'week' %}selected{% endif %}>This Week</option>
-        <option value="month" {% if filter == 'month' %}selected{% endif %}>This Month</option>
-        <option value="range" {% if filter == 'range' %}selected{% endif %}>Custom Range</option>
-    </select>
-    <label>From: <input type="date" name="start_date" value="{{ start_date }}"></label>
-    <label>To: <input type="date" name="end_date" value="{{ end_date }}"></label>
-    <button type="submit">Apply</button>
-</form>
+    <div class="container">
+        <h4 class="center-align">📊 Parsed Receipts</h4>
 
-<p><strong>Running Total:</strong> ${{ total }}</p>
+        <form method="GET" class="filters card-panel">
+            <div class="row">
+                <div class="input-field col s12 m4">
+                    <select name="filter" id="filter">
+                        <option value="all" {% if filter=='all' %}selected{% endif %}>All Time</option>
+                        <option value="day" {% if filter=='day' %}selected{% endif %}>Today</option>
+                        <option value="week" {% if filter=='week' %}selected{% endif %}>This Week</option>
+                        <option value="month" {% if filter=='month' %}selected{% endif %}>This Month</option>
+                        <option value="range" {% if filter=='range' %}selected{% endif %}>Custom Range</option>
+                    </select>
+                    <label for="filter">Time Filter</label>
+                </div>
 
-<table>
-<thead><tr>
-{% for header in headers %}<th>{{ header }}</th>{% endfor %}
-</tr></thead><tbody>
-{% for receipt in receipts %}
-<tr>
-<td>{{ receipt.store }}</td>
-<td>{{ receipt.date }}</td>
-<td>${{ "%.2f"|format(receipt.total) }}</td>
-<td>{{ receipt.category.name if receipt.category else "Uncategorized" }}</td>
-<td>
-{% if receipt.image_filename %}
-<img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" width="100"><br>
-{% else %}No Image<br>{% endif %}
-<a href="{{ url_for('edit_receipt', receipt_id=receipt.id) }}">Edit</a>
-</td>
-</tr>
-{% endfor %}
-</tbody></table>
-<a href="/">Upload</a> | <a href="/categories">Categories</a>
+                <div class="input-field col s6 m4">
+                    <input type="date" name="start_date" id="start_date" value="{{ start_date }}">
+                    <label for="start_date">From</label>
+                </div>
+
+                <div class="input-field col s6 m4">
+                    <input type="date" name="end_date" id="end_date" value="{{ end_date }}">
+                    <label for="end_date">To</label>
+                </div>
+            </div>
+
+            <div class="center-align">
+                <button class="btn waves-effect blue" type="submit">
+                    Apply <i class="material-icons right">filter_list</i>
+                </button>
+            </div>
+        </form>
+
+        <div class="total-display">
+            <h6 class="center-align">💰 Running Total: ${{ total }}</h6>
+        </div>
+
+        <table class="striped highlight centered" style="width: 100%;">
+
+            <thead>
+                <tr>
+                    {% for header in headers %}
+                    <th>{{ header }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for receipt in receipts %}
+                <tr>
+                    <td>{{ receipt.store }}</td>
+                    <td>{{ receipt.date }}</td>
+                    <td>${{ "%.2f"|format(receipt.total) }}</td>
+                    <td>{{ receipt.category.name if receipt.category else "Uncategorized" }}</td>
+                    <td>
+                        {% if receipt.image_filename %}
+                        <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}"
+                            width="100"><br>
+                        {% else %}
+                        No Image<br>
+                        {% endif %}
+                        <a href="{{ url_for('edit_receipt', receipt_id=receipt.id) }}"
+                            class="btn-small grey darken-1">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="section center-align">
+            <a href="/" class="btn-flat">⬅ Upload</a> |
+            <a href="/categories" class="btn-flat">📚 Categories</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const elems = document.querySelectorAll('select');
+            M.FormSelect.init(elems);
+        });
+    </script>
+
 </body>
+
 </html>
