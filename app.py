@@ -67,6 +67,13 @@ def admin():
     end_date_str = request.args.get("end_date")
     today = datetime.today()
 
+    sound_folder = os.path.join(app.static_folder, "sounds")
+    sounds = [
+        f"/static/sounds/{f}"
+        for f in os.listdir(sound_folder)
+        if f.endswith(".mp3")
+    ]
+
     def parse_date(s):
         for fmt in ("%m/%d/%Y", "%Y-%m-%d", "%m-%d-%Y", "%m/%d/%y"):
             try:
@@ -108,6 +115,7 @@ def admin():
         filter=filter_option,
         start_date=start_date_str or "",
         end_date=end_date_str or "",
+        sounds=sounds,
     )
 
 

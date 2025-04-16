@@ -343,9 +343,30 @@
     document.addEventListener("keydown", function (e) {
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "g") {
         document.body.classList.toggle("goblin-mode");
+  
+        if (document.body.classList.contains("goblin-mode")) {
+          console.log("😼 Goblin Cat Mode Activated");
+        } else {
+          console.log("🐾 Goblin Cat Mode Deactivated");
+        }
       }
     });
+  
+    const goblinSounds = {{ sounds | tojson }};
+  
+    function playRandomGoblinSound() {
+      if (!document.body.classList.contains("goblin-mode")) return;
+  
+      const src = goblinSounds[Math.floor(Math.random() * goblinSounds.length)];
+      const audio = new Audio(src);
+      audio.play();
+    }
+  
+    // Trigger on any click
+    document.addEventListener("click", playRandomGoblinSound);
+ 
   </script>
+  
   
 
 
