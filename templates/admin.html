@@ -13,7 +13,7 @@
 
     <style>
         body {
-            padding: 2rem;
+            padding: 1rem;
             background-color: #f9f9f9;
         }
 
@@ -36,15 +36,8 @@
             margin: 0 auto;
         }
 
-        @media screen and (max-width: 600px) {
-            td img {
-                display: none;
-            }
-        }
-
         .receipt-thumb {
             max-height: 150px;
-            /* limit how much of the image shows */
             overflow: hidden;
             display: block;
         }
@@ -55,6 +48,61 @@
             width: 100%;
             max-width: 100%;
         }
+
+        /* Mobile-specific overrides */
+        @media screen and (max-width: 600px) {
+            .receipt-thumb {
+                display: none;
+            }
+
+            .mobile-image-note {
+                display: block;
+                font-size: 0.9rem;
+                color: #888;
+                margin-top: 0.5rem;
+            }
+        }
+
+        /* Desktop-only note hidden */
+        @media screen and (min-width: 601px) {
+            .mobile-image-note {
+                display: none;
+            }
+        }
+
+        .receipt-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.receipt-buttons .btn-small {
+  min-width: 80px;
+  padding: 0 1rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* Only show "View" on mobile */
+@media screen and (min-width: 601px) {
+  .mobile-image-note {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .receipt-thumb {
+    display: none;
+  }
+
+  .mobile-image-note {
+    display: block;
+  }
+}
+
+
     </style>
 </head>
 
@@ -116,24 +164,40 @@
                     <td>{{ receipt.category.name if receipt.category else "Uncategorized" }}</td>
                     <td>
                         {% if receipt.image_filename %}
-                        <div class="receipt-thumb">
-                        <a class="modal-trigger" href="#modal-{{ loop.index }}">
-                            <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}"
-                                width="100">
-                        </a>
-                        </div>
-                        <div id="modal-{{ loop.index }}" class="modal">
+                          <!-- DESKTOP: show image -->
+                          <div class="receipt-thumb hide-on-small-only">
+                            <a class="modal-trigger" href="#modal-{{ loop.index }}">
+                              <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}">
+                            </a>
+                          </div>
+                      
+                          <!-- MODAL (shared for both views) -->
+                          <div id="modal-{{ loop.index }}" class="modal">
                             <div class="modal-content center-align">
-                                <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}"
-                                    style="max-width: 100%;">
+                              <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}">
                             </div>
-                        </div>
+                          </div>
                         {% else %}
-                        No Image<br>
+                          No Image<br>
                         {% endif %}
-                        <a href="{{ url_for('edit_receipt', receipt_id=receipt.id) }}"
-                            class="btn-small grey darken-1">Edit</a>
-                    </td>
+                      
+                        <!-- ✅ Buttons -->
+                        <div class="receipt-buttons">
+                          <!-- MOBILE-ONLY VIEW BUTTON -->
+                          {% if receipt.image_filename %}
+                          <div class="mobile-image-note hide-on-med-and-up center-align">
+                            <a class="btn-small blue modal-trigger" href="#modal-{{ loop.index }}">View</a>
+                          </div>
+                          {% endif %}
+                      
+                          <!-- ALWAYS SHOW EDIT BUTTON -->
+                          <a href="{{ url_for('edit_receipt', receipt_id=receipt.id) }}" class="btn-small grey darken-1">Edit</a>
+                        </div>
+                      </td>
+                      
+                      
+                      
+
                 </tr>
                 {% endfor %}
             </tbody>
