@@ -7,7 +7,9 @@ def extract_date(text):
         (r"\d{4}-\d{2}-\d{2}", "%Y-%m-%d"),
         (r"\d{2}/\d{2}/\d{2}", "%m/%d/%y"),
         (r"\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}\b", "%b %d, %Y"),
+        (r"\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}\b", "%B %d, %Y"),
     ]
+
     for pattern, fmt in patterns:
         match = re.search(pattern, text)
         if match:

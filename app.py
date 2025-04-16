@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import os
 from werkzeug.utils import secure_filename
+from datetime import datetime
+
 from receipt_parser import parse_receipt
 
 app = Flask(__name__)
@@ -25,6 +27,11 @@ class Receipt(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=True)
     image_filename = db.Column(db.String(200), nullable=True)
 
+@app.context_processor
+def inject_goblin_sounds():
+    folder = os.path.join(app.static_folder, "sounds")
+    sounds = [f"/static/sounds/{f}" for f in os.listdir(folder) if f.endswith(".mp3")]
+    return dict(sounds=sounds)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -67,13 +74,6 @@ def admin():
     end_date_str = request.args.get("end_date")
     today = datetime.today()
 
-    sound_folder = os.path.join(app.static_folder, "sounds")
-    sounds = [
-        f"/static/sounds/{f}"
-        for f in os.listdir(sound_folder)
-        if f.endswith(".mp3")
-    ]
-
     def parse_date(s):
         for fmt in ("%m/%d/%Y", "%Y-%m-%d", "%m-%d-%Y", "%m/%d/%y"):
             try:
@@ -115,7 +115,6 @@ def admin():
         filter=filter_option,
         start_date=start_date_str or "",
         end_date=end_date_str or "",
-        sounds=sounds,
     )
 
 
@@ -126,7 +125,11 @@ def edit_receipt(receipt_id):
 
     if request.method == "POST":
         receipt.store = request.form["store"]
-        receipt.date = request.form["date"]
+        try:
+            receipt.date = datetime.strptime(request.form["date"], "%Y-%m-%d").date()
+        except ValueError:
+            flash("Invalid date format. Use YYYY-MM-DD.")
+            return redirect(url_for("edit_receipt", receipt_id=receipt.id))
         receipt.total = float(request.form["total"])
         category_id = request.form.get("category")
         receipt.category_id = int(category_id) if category_id else None
