@@ -20,7 +20,7 @@ class Category(db.Model):
 class Receipt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     store = db.Column(db.String(120), nullable=False)
-    date = db.Column(db.String(50), nullable=False)
+    date = db.Column(db.Date)
     total = db.Column(db.Float, nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=True)
     image_filename = db.Column(db.String(200), nullable=True)

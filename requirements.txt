@@ -4,3 +4,4 @@ opencv-python
 pytesseract
 Pillow
 pdf2image
+PyMuPDF

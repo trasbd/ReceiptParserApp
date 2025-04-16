@@ -1,18 +1,38 @@
+from datetime import datetime
 from pdf2image import convert_from_path
 from PIL import Image
 import os
 import cv2
 import pytesseract
 import re
+import fitz  # PyMuPDF
+
 
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 
-def extract_text_from_image(filepath):
+def pdf_has_text(filepath):
+    with fitz.open(filepath) as pdf:
+        for page in pdf:
+            if page.get_text().strip():
+                return True
+    return False
+
+
+def extract_text_from_pdf(filepath):
+    text = ""
+    with fitz.open(filepath) as pdf:
+        for page in pdf:
+            text += page.get_text()
+    return text
+
+
+def extract_text_from_file(filepath):
     text = ""
     filename = os.path.basename(filepath)
 
     if filepath.lower().endswith(".pdf"):
+
         # Convert all pages of the PDF into images
         images = convert_from_path(filepath)  # all pages
 
@@ -35,36 +55,40 @@ def extract_text_from_image(filepath):
             image_filename = filename.replace(".pdf", ".jpg")
             save_path = os.path.join("static/uploads", image_filename)
             image.save(save_path, "JPEG")
-            text = pytesseract.image_to_string(image)
-            return text, image_filename
+
+            filename = image_filename
+
+            if pdf_has_text(filepath):
+                text = extract_text_from_pdf(filepath)
+
+            else:
+                text = pytesseract.image_to_string(image)
+
     else:
         img = cv2.imread(filepath)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         text = pytesseract.image_to_string(gray)
-        return text, filename
+    return text, filename
 
 
 def parse_walmart(text):
-    date = re.search(r"\d{2}/\d{2}/\d{4}", text)
-    total = re.search(r"TOTAL\s*\$?(\d+\.\d{2})", text)
+    total = re.search(r"Total\s*\$?(\d+\.\d{2})", text)
     return {
         "store": "Walmart",
-        "date": date.group() if date else "Date not found",
+        "date": extract_date(text),
         "total": total.group(1) if total else "Total not found",
     }
 
-
-def parse_target(text):
-    date = re.search(r"\d{2}/\d{2}/\d{4}", text)
-    total = re.search(r"Total:\s*\$?(\d+\.\d{2})", text)
+def parse_schnucks(text):
+    total = re.search(r"Total\s*\$?(\d+\.\d{2})", text)
     return {
-        "store": "Target",
-        "date": date.group() if date else "Date not found",
+        "store": "Schnucks",
+        "date": extract_date(text),
         "total": total.group(1) if total else "Total not found",
     }
 
 
-STORE_PARSERS = {"walmart": parse_walmart, "target": parse_target}
+STORE_PARSERS = {"walmart": parse_walmart, "schnucks":parse_schnucks }
 
 
 def extract_store_name(text):
@@ -76,12 +100,26 @@ def extract_store_name(text):
 
 
 def extract_date(text):
-    patterns = [r"\d{2}/\d{2}/\d{4}", r"\d{4}-\d{2}-\d{2}", r"\d{2}/\d{2}/\d{2}"]
-    for p in patterns:
-        match = re.search(p, text)
+    # Pattern: regex + corresponding date format
+    patterns = [
+        (r"\d{2}/\d{2}/\d{4}", "%m/%d/%Y"),  # 04/13/2025
+        (r"\d{4}-\d{2}-\d{2}", "%Y-%m-%d"),  # 2025-04-13
+        (r"\d{2}/\d{2}/\d{2}", "%m/%d/%y"),  # 04/13/25
+        (
+            r"\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}\b",
+            "%b %d, %Y",
+        ),  # Apr 13, 2025
+    ]
+
+    for pattern, fmt in patterns:
+        match = re.search(pattern, text)
         if match:
-            return match.group()
-    return "Date not found"
+            try:
+                return datetime.strptime(match.group(), fmt).date()
+            except ValueError:
+                continue  # If the date string doesn't match the format strictly
+
+    return None  # Or raise ValueError("Date not found")
 
 
 def extract_total(text):
@@ -95,8 +133,11 @@ def extract_total(text):
 
 
 def parse_receipt(filepath):
-    text, image_filename = extract_text_from_image(filepath)
+    text, image_filename = extract_text_from_file(filepath)
     lower = text.lower()
+
+    with open(".\\temp\\output.txt", "w", encoding="utf-8") as f:
+        f.write(text)
 
     for key, parser in STORE_PARSERS.items():
         if key in lower:
