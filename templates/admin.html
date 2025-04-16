@@ -12,6 +12,33 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" defer></script>
 
     <style>
+        body.goblin-mode {
+          background: url('https://cataas.com/cat/says/goblin') no-repeat center center fixed;
+          background-size: cover;
+          color: #0f0;
+          font-family: 'Comic Sans MS', cursive, sans-serif;
+          transition: all 0.3s ease-in-out;
+        }
+      
+        body.goblin-mode h1,
+        body.goblin-mode h2,
+        body.goblin-mode h3 {
+          text-shadow: 0 0 5px #0f0;
+        }
+      
+        body.goblin-mode table {
+          transform: rotate(-2deg);
+          box-shadow: 0 0 10px lime;
+        }
+      
+        body.goblin-mode td, body.goblin-mode th {
+          background-color: rgba(0, 0, 0, 0.7);
+          color: #0f0;
+        }
+      </style>
+      
+
+    <style>
         body {
             padding: 1rem;
             background-color: #f9f9f9;
@@ -71,39 +98,118 @@
         }
 
         .receipt-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  align-items: center;
-  margin-top: 0.5rem;
-}
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
 
-.receipt-buttons .btn-small {
-  min-width: 80px;
-  padding: 0 1rem;
-  font-size: 0.85rem;
-  white-space: nowrap;
-}
+        .receipt-buttons .btn-small {
+            min-width: 80px;
+            padding: 0 1rem;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
 
-/* Only show "View" on mobile */
-@media screen and (min-width: 601px) {
-  .mobile-image-note {
-    display: none;
-  }
-}
+        /* Only show "View" on mobile */
+        @media screen and (min-width: 601px) {
+            .mobile-image-note {
+                display: none;
+            }
+        }
 
-@media screen and (max-width: 600px) {
-  .receipt-thumb {
-    display: none;
-  }
+        @media screen and (max-width: 600px) {
+            .receipt-thumb {
+                display: none;
+            }
 
-  .mobile-image-note {
-    display: block;
-  }
-}
-
-
+            .mobile-image-note {
+                display: block;
+            }
+        }
     </style>
+<style>
+    th {
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+    }
+  
+    th.sorted::after {
+      content: attr(data-arrow);
+      position: absolute;
+      right: 5px;
+      color: #1565c0;
+      font-size: 0.9rem;
+    }
+  
+    th[data-sortable="false"] {
+      cursor: default;
+    }
+  </style>
+  
+      
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const getCellValue = (tr, idx) =>
+        tr.children[idx].innerText || tr.children[idx].textContent;
+  
+      const comparer = (idx, asc) => (a, b) => {
+        let valA = getCellValue(a, idx);
+        let valB = getCellValue(b, idx);
+  
+        const dateA = Date.parse(valA);
+        const dateB = Date.parse(valB);
+        if (!isNaN(dateA) && !isNaN(dateB)) return asc ? dateA - dateB : dateB - dateA;
+  
+        const numA = parseFloat(valA);
+        const numB = parseFloat(valB);
+        if (!isNaN(numA) && !isNaN(numB)) return asc ? numA - numB : numB - numA;
+  
+        return asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      };
+  
+      const table = document.querySelector("table");
+      const ths = table.querySelectorAll("th");
+      const tbody = table.querySelector("tbody");
+  
+      ths.forEach((th, idx) => {
+        if (th.dataset.sortable === "false") return;
+  
+        th.addEventListener("click", () => {
+          const rows = Array.from(tbody.querySelectorAll("tr"));
+          const asc = !th.classList.contains("sorted-asc");
+  
+          // Remove sorting classes/arrows from all headers
+          ths.forEach(header => {
+            header.classList.remove("sorted", "sorted-asc", "sorted-desc");
+            header.removeAttribute("data-arrow");
+          });
+  
+          // Set class and arrow on clicked header
+          th.classList.add("sorted", asc ? "sorted-asc" : "sorted-desc");
+          th.setAttribute("data-arrow", asc ? "🔼" : "🔽");
+  
+          // Sort rows
+          rows.sort(comparer(idx, asc)).forEach(row => tbody.appendChild(row));
+        });
+      });
+  
+      // ✅ Default sort by date (column 1) descending
+      const defaultSortIndex = 1;
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+      rows.sort(comparer(defaultSortIndex, false)).forEach(row =>
+        tbody.appendChild(row)
+      );
+      const defaultTh = ths[defaultSortIndex];
+      defaultTh.classList.add("sorted", "sorted-desc");
+      defaultTh.setAttribute("data-arrow", "🔽");
+    });
+  </script>
+  
+      
+      
 </head>
 
 <body>
@@ -153,11 +259,14 @@
 
             <thead>
                 <tr>
-                    {% for header in headers %}
-                    <th>{{ header }}</th>
-                    {% endfor %}
+                  {% for header in headers %}
+                    <th {% if header == 'Image' %}data-sortable="false"{% endif %}>
+                      {{ header }}
+                    </th>
+                  {% endfor %}
                 </tr>
-            </thead>
+              </thead>
+              
             <tbody>
                 {% for receipt in receipts %}
                 <tr>
@@ -167,39 +276,40 @@
                     <td>{{ receipt.category.name if receipt.category else "Uncategorized" }}</td>
                     <td>
                         {% if receipt.image_filename %}
-                          <!-- DESKTOP: show image -->
-                          <div class="receipt-thumb hide-on-small-only">
+                        <!-- DESKTOP: show image -->
+                        <div class="receipt-thumb hide-on-small-only">
                             <a class="modal-trigger" href="#modal-{{ loop.index }}">
-                              <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}">
+                                <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}">
                             </a>
-                          </div>
-                      
-                          <!-- MODAL (shared for both views) -->
-                          <div id="modal-{{ loop.index }}" class="modal">
+                        </div>
+
+                        <!-- MODAL (shared for both views) -->
+                        <div id="modal-{{ loop.index }}" class="modal">
                             <div class="modal-content center-align">
-                              <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}">
+                                <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}">
                             </div>
-                          </div>
+                        </div>
                         {% else %}
-                          No Image<br>
+                        No Image<br>
                         {% endif %}
-                      
+
                         <!-- ✅ Buttons -->
                         <div class="receipt-buttons">
-                          <!-- MOBILE-ONLY VIEW BUTTON -->
-                          {% if receipt.image_filename %}
-                          <div class="mobile-image-note hide-on-med-and-up center-align">
-                            <a class="btn-small blue modal-trigger" href="#modal-{{ loop.index }}">View</a>
-                          </div>
-                          {% endif %}
-                      
-                          <!-- ALWAYS SHOW EDIT BUTTON -->
-                          <a href="{{ url_for('edit_receipt', receipt_id=receipt.id) }}" class="btn-small grey darken-1">Edit</a>
+                            <!-- MOBILE-ONLY VIEW BUTTON -->
+                            {% if receipt.image_filename %}
+                            <div class="mobile-image-note hide-on-med-and-up center-align">
+                                <a class="btn-small blue modal-trigger" href="#modal-{{ loop.index }}">View</a>
+                            </div>
+                            {% endif %}
+
+                            <!-- ALWAYS SHOW EDIT BUTTON -->
+                            <a href="{{ url_for('edit_receipt', receipt_id=receipt.id) }}"
+                                class="btn-small grey darken-1">Edit</a>
                         </div>
-                      </td>
-                      
-                      
-                      
+                    </td>
+
+
+
 
                 </tr>
                 {% endfor %}
@@ -228,6 +338,15 @@
             M.Modal.init(modals);
         });
     </script>
+
+<script>
+    document.addEventListener("keydown", function (e) {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "g") {
+        document.body.classList.toggle("goblin-mode");
+      }
+    });
+  </script>
+  
 
 
 </body>
