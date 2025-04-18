@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 import os
 from werkzeug.utils import secure_filename
@@ -7,6 +7,7 @@ from datetime import datetime
 from receipt_parser import parse_receipt
 
 app = Flask(__name__)
+app.secret_key = "super_secret_key_here"  # 🔑 Set something strong here
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///receipts.db"
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -126,7 +127,8 @@ def edit_receipt(receipt_id):
     if request.method == "POST":
         receipt.store = request.form["store"]
         try:
-            receipt.date = datetime.strptime(request.form["date"], "%Y-%m-%d").date()
+            if "date" in request.form:
+                receipt.date = datetime.strptime(request.form["date"], "%Y-%m-%d").date()
         except ValueError:
             flash("Invalid date format. Use YYYY-MM-DD.")
             return redirect(url_for("edit_receipt", receipt_id=receipt.id))
@@ -170,6 +172,7 @@ def delete_receipt(receipt_id):
     receipt = Receipt.query.get_or_404(receipt_id)
     db.session.delete(receipt)
     db.session.commit()
+    print(f"Deleting receipt ID: {receipt_id}")
     return redirect(url_for("admin"))
 
 

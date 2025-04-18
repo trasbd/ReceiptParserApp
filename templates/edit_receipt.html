@@ -1,7 +1,88 @@
-<form method='POST'><input name='store' value='{{ receipt.store }}'><input name='date' value='{{ receipt.date }}'><input
-        name='total' value='{{ receipt.total }}'><button>Save</button></form>
+{% extends "base.html" %}
+{% block title %}Edit Receipt{% endblock %}
 
-<form method="POST" action="{{ url_for('delete_receipt', receipt_id=receipt.id) }}"
-    onsubmit="return confirm('Are you sure you want to delete this receipt?');" style="margin-top: 1rem;">
-    <button type="submit" class="btn red darken-2">Delete</button>
-</form>
+{% block content %}
+<h5 class="center-align">Edit Receipt</h5>
+<br>
+
+<div class="row">
+    <!-- Form Column -->
+    <div class="col s12 m7">
+        <form method="POST" id="edit-form" class="card-panel">
+            <div class="input-field">
+                <input name="store" id="store" type="text" value="{{ receipt.store }}" required>
+                <label for="store" class="active">Store</label>
+            </div>
+
+            <div class="input-field">
+                <input name="date" id="date" type="date" value="{{ receipt.date }}" required>
+                <label for="date" class="active">Date</label>
+            </div>
+
+            <div class="input-field">
+                <input name="total" id="total" type="number" step="0.01" value="{{ receipt.total }}" required>
+                <label for="total" class="active">Total</label>
+            </div>
+
+            <!-- Desktop Buttons (hidden on small screens) -->
+            <!-- Desktop Buttons (hidden on small screens) -->
+            <div class="row hide-on-small-only">
+                <div class="col s12 center-align">
+                    <button type="submit" class="btn green">
+                        Save
+                        <i class="material-icons right">save</i>
+                    </button>
+
+                    <a href="{{ url_for('admin') }}" class="btn grey darken-1">
+                        Cancel
+                        <i class="material-icons right">cancel</i>
+                    </a>
+
+                    <form method="POST" action="{{ url_for('delete_receipt', receipt_id=receipt.id) }}"
+                        style="display: inline;"
+                        onsubmit="return confirm('Are you sure you want to delete this receipt?');">
+                        <button type="submit" class="btn red darken-2" formnovalidate>
+                            Delete
+                            <i class="material-icons right">delete</i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Image Column -->
+    {% if receipt.image_filename %}
+    <div class="col s12 m5 center-align">
+        <div class="card-panel" style="padding: 1rem;">
+            <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" alt="Receipt Image"
+                style="max-width: 100%; max-height: 400px;">
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Sticky Footer Bar (mobile only) -->
+<div class="hide-on-med-and-up"
+    style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #fff; border-top: 1px solid #ccc; padding: 1rem 0; z-index: 999;">
+    <div class="container center-align">
+        <button form="edit-form" type="submit" class="btn green">
+            Save
+            <i class="material-icons right">save</i>
+        </button>
+
+        <form method="POST" action="{{ url_for('delete_receipt', receipt_id=receipt.id) }}" style="display: inline;"
+            onsubmit="return confirm('Are you sure you want to delete this receipt?');">
+            <button type="submit" class="btn red darken-2" formnovalidate>
+                Delete
+                <i class="material-icons right">delete</i>
+            </button>
+        </form>
+
+        <a href="{{ url_for('admin') }}" class="btn grey darken-1">
+            Cancel
+            <i class="material-icons right">cancel</i>
+        </a>
+    </div>
+</div>
+{% endblock %}
