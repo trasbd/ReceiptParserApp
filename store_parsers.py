@@ -15,8 +15,7 @@ def parse_walmart(text):
 def parse_schnucks(text):
     return parse_generic_store(text, "Schnucks")
 
-def parse_mcdonalds
-    
+
 
 STORE_PARSERS = {
     "walmart": parse_walmart,
