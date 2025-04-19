@@ -22,6 +22,7 @@ class Category(db.Model):
 
 class Receipt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    datetime_added = db.Column(db.DateTime, default=datetime.now)
     store = db.Column(db.String(120), nullable=False)
     date = db.Column(db.Date)
     total = db.Column(db.Float, nullable=False)
@@ -86,7 +87,7 @@ def admin():
     start_date = parse_date(start_date_str) if start_date_str else None
     end_date = parse_date(end_date_str) if end_date_str else None
 
-    query = Receipt.query.join(Category, isouter=True)
+    query = Receipt.query.join(Category, isouter=True).order_by(Receipt.datetime_added.desc())
 
     if filter_option == "day":
         query = query.filter(Receipt.date == today.strftime("%Y-%m-%d"))
@@ -111,7 +112,7 @@ def admin():
     return render_template(
         "admin.html",
         receipts=receipts,
-        headers=["Store", "Date", "Total", "Category", "Image"],
+        headers=["Added", "Store", "Date", "Total", "Category", "Image"],
         total=f"{total:.2f}",
         filter=filter_option,
         start_date=start_date_str or "",
@@ -174,6 +175,13 @@ def delete_receipt(receipt_id):
     db.session.commit()
     print(f"Deleting receipt ID: {receipt_id}")
     return redirect(url_for("admin"))
+
+@app.route("/admin/last_update")
+def last_update():
+    latest = db.session.query(Receipt.datetime_added).order_by(Receipt.datetime_added.desc()).first()
+    if latest and latest[0]:
+        return {"last_update": latest[0].isoformat()}
+    return {"last_update": None}
 
 
 

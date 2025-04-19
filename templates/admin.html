@@ -3,299 +3,340 @@
 
 {% block extra_head %}
 
-    <style>
-        body {
-            padding: 1rem;
-            background-color: #f9f9f9;
-        }
+<style>
+    body {
+        padding: 1rem;
+        background-color: #f9f9f9;
+    }
 
-        table {
-            table-layout: fixed;
-            width: 100%;
-            word-wrap: break-word;
-        }
+    table {
+        table-layout: fixed;
+        width: 100%;
+        word-wrap: break-word;
+    }
 
-        th,
-        td {
-            white-space: normal;
-            word-break: break-word;
-        }
+    th,
+    td {
+        white-space: normal;
+        word-break: break-word;
+    }
 
-        td img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-        }
+    td img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
 
+    .receipt-thumb {
+        max-height: 150px;
+        overflow: hidden;
+        display: block;
+    }
+
+    .receipt-thumb img {
+        display: block;
+        object-fit: cover;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Mobile-specific overrides */
+    @media screen and (max-width: 600px) {
         .receipt-thumb {
-            max-height: 150px;
-            overflow: hidden;
+            display: none;
+        }
+
+        .mobile-image-note {
             display: block;
-        }
-
-        .receipt-thumb img {
-            display: block;
-            object-fit: cover;
-            width: 100%;
-            max-width: 100%;
-        }
-
-        /* Mobile-specific overrides */
-        @media screen and (max-width: 600px) {
-            .receipt-thumb {
-                display: none;
-            }
-
-            .mobile-image-note {
-                display: block;
-                font-size: 0.9rem;
-                color: #888;
-                margin-top: 0.5rem;
-            }
-        }
-
-        /* Desktop-only note hidden */
-        @media screen and (min-width: 601px) {
-            .mobile-image-note {
-                display: none;
-            }
-        }
-
-        .receipt-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-            align-items: center;
+            font-size: 0.9rem;
+            color: #888;
             margin-top: 0.5rem;
         }
+    }
 
-        .receipt-buttons .btn-small {
-            min-width: 80px;
-            padding: 0 1rem;
-            font-size: 0.85rem;
-            white-space: nowrap;
+    /* Desktop-only note hidden */
+    @media screen and (min-width: 601px) {
+        .mobile-image-note {
+            display: none;
+        }
+    }
+
+    .receipt-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        align-items: center;
+        margin-top: 0.5rem;
+    }
+
+    .receipt-buttons .btn-small {
+        min-width: 80px;
+        padding: 0 1rem;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+
+    /* Only show "View" on mobile */
+    @media screen and (min-width: 601px) {
+        .mobile-image-note {
+            display: none;
+        }
+    }
+
+    @media screen and (max-width: 600px) {
+        .receipt-thumb {
+            display: none;
         }
 
-        /* Only show "View" on mobile */
-        @media screen and (min-width: 601px) {
-            .mobile-image-note {
-                display: none;
-            }
+        .mobile-image-note {
+            display: block;
         }
+    }
+</style>
+<style>
+    th {
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+    }
 
-        @media screen and (max-width: 600px) {
-            .receipt-thumb {
-                display: none;
-            }
+    th.sorted::after {
+        content: attr(data-arrow);
+        position: absolute;
+        right: 5px;
+        color: #1565c0;
+        font-size: 0.9rem;
+    }
 
-            .mobile-image-note {
-                display: block;
-            }
-        }
-    </style>
-    <style>
-        th {
-            cursor: pointer;
-            user-select: none;
-            position: relative;
-        }
-
-        th.sorted::after {
-            content: attr(data-arrow);
-            position: absolute;
-            right: 5px;
-            color: #1565c0;
-            font-size: 0.9rem;
-        }
-
-        th[data-sortable="false"] {
-            cursor: default;
-        }
-    </style>
+    th[data-sortable="false"] {
+        cursor: default;
+    }
+</style>
 
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const getCellValue = (tr, idx) =>
-                tr.children[idx].innerText || tr.children[idx].textContent;
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const getCellValue = (tr, idx) =>
+            tr.children[idx].innerText || tr.children[idx].textContent;
 
-            const comparer = (idx, asc) => (a, b) => {
-                let valA = getCellValue(a, idx);
-                let valB = getCellValue(b, idx);
+        const comparer = (idx, asc) => (a, b) => {
+            let valA = getCellValue(a, idx);
+            let valB = getCellValue(b, idx);
 
-                const dateA = Date.parse(valA);
-                const dateB = Date.parse(valB);
-                if (!isNaN(dateA) && !isNaN(dateB)) return asc ? dateA - dateB : dateB - dateA;
+            const dateA = Date.parse(valA);
+            const dateB = Date.parse(valB);
+            if (!isNaN(dateA) && !isNaN(dateB)) return asc ? dateA - dateB : dateB - dateA;
 
-                const numA = parseFloat(valA);
-                const numB = parseFloat(valB);
-                if (!isNaN(numA) && !isNaN(numB)) return asc ? numA - numB : numB - numA;
+            const numA = parseFloat(valA);
+            const numB = parseFloat(valB);
+            if (!isNaN(numA) && !isNaN(numB)) return asc ? numA - numB : numB - numA;
 
-                return asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-            };
+            return asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        };
 
-            const table = document.querySelector("table");
-            const ths = table.querySelectorAll("th");
-            const tbody = table.querySelector("tbody");
+        const table = document.querySelector("table");
+        const ths = table.querySelectorAll("th");
+        const tbody = table.querySelector("tbody");
 
-            ths.forEach((th, idx) => {
-                if (th.dataset.sortable === "false") return;
+        ths.forEach((th, idx) => {
+            if (th.dataset.sortable === "false") return;
 
-                th.addEventListener("click", () => {
-                    const rows = Array.from(tbody.querySelectorAll("tr"));
-                    const asc = !th.classList.contains("sorted-asc");
+            th.addEventListener("click", () => {
+                const rows = Array.from(tbody.querySelectorAll("tr"));
+                const asc = !th.classList.contains("sorted-asc");
 
-                    // Remove sorting classes/arrows from all headers
-                    ths.forEach(header => {
-                        header.classList.remove("sorted", "sorted-asc", "sorted-desc");
-                        header.removeAttribute("data-arrow");
-                    });
-
-                    // Set class and arrow on clicked header
-                    th.classList.add("sorted", asc ? "sorted-asc" : "sorted-desc");
-                    th.setAttribute("data-arrow", asc ? "🔼" : "🔽");
-
-                    // Sort rows
-                    rows.sort(comparer(idx, asc)).forEach(row => tbody.appendChild(row));
+                // Remove sorting classes/arrows from all headers
+                ths.forEach(header => {
+                    header.classList.remove("sorted", "sorted-asc", "sorted-desc");
+                    header.removeAttribute("data-arrow");
                 });
-            });
 
-            // ✅ Default sort by date (column 1) descending
-            const defaultSortIndex = 1;
-            const rows = Array.from(tbody.querySelectorAll("tr"));
-            rows.sort(comparer(defaultSortIndex, false)).forEach(row =>
-                tbody.appendChild(row)
-            );
-            const defaultTh = ths[defaultSortIndex];
-            defaultTh.classList.add("sorted", "sorted-desc");
-            defaultTh.setAttribute("data-arrow", "🔽");
+                // Set class and arrow on clicked header
+                th.classList.add("sorted", asc ? "sorted-asc" : "sorted-desc");
+                th.setAttribute("data-arrow", asc ? "🔼" : "🔽");
+
+                // Sort rows
+                rows.sort(comparer(idx, asc)).forEach(row => tbody.appendChild(row));
+            });
         });
-    </script>
+
+        // ✅ Default sort by date (column 1) descending
+        const defaultSortIndex = 2;
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        rows.sort(comparer(defaultSortIndex, false)).forEach(row =>
+            tbody.appendChild(row)
+        );
+        const defaultTh = ths[defaultSortIndex];
+        defaultTh.classList.add("sorted", "sorted-desc");
+        defaultTh.setAttribute("data-arrow", "🔽");
+    });
+</script>
 
 {% endblock %}
 
-    {% block content %}
-        <h4 class="center-align">📊 Parsed Receipts</h4>
-        <div class="section center-align">
-            <a href="/" class="btn-flat">⬅ Upload</a> |
-            <a href="/categories" class="btn-flat">📚 Categories</a>
-        </div>
-        <form method="GET" class="filters card-panel">
-            <div class="row">
-                <div class="input-field col s12 m4">
-                    <select name="filter" id="filter">
-                        <option value="all" {% if filter=='all' %}selected{% endif %}>All Time</option>
-                        <option value="day" {% if filter=='day' %}selected{% endif %}>Today</option>
-                        <option value="week" {% if filter=='week' %}selected{% endif %}>This Week</option>
-                        <option value="month" {% if filter=='month' %}selected{% endif %}>This Month</option>
-                        <option value="range" {% if filter=='range' %}selected{% endif %}>Custom Range</option>
-                    </select>
-                    <label for="filter">Time Filter</label>
-                </div>
-
-                <div class="input-field col s6 m4">
-                    <input type="date" name="start_date" id="start_date" value="{{ start_date }}">
-                    <label for="start_date">From</label>
-                </div>
-
-                <div class="input-field col s6 m4">
-                    <input type="date" name="end_date" id="end_date" value="{{ end_date }}">
-                    <label for="end_date">To</label>
-                </div>
-            </div>
-
-            <div class="center-align">
-                <button class="btn waves-effect blue" type="submit">
-                    Apply <i class="material-icons right">filter_list</i>
-                </button>
-            </div>
-        </form>
-
-        <div class="total-display">
-            <h6 class="center-align">💰 Running Total: ${{ total }}</h6>
+{% block content %}
+<h4 class="center-align">📊 Parsed Receipts</h4>
+<div class="section center-align">
+    <a href="/" class="btn-flat">⬅ Upload</a> |
+    <a href="/categories" class="btn-flat">📚 Categories</a>
+</div>
+<form method="GET" class="filters card-panel">
+    <div class="row">
+        <div class="input-field col s12 m4">
+            <select name="filter" id="filter">
+                <option value="all" {% if filter=='all' %}selected{% endif %}>All Time</option>
+                <option value="day" {% if filter=='day' %}selected{% endif %}>Today</option>
+                <option value="week" {% if filter=='week' %}selected{% endif %}>This Week</option>
+                <option value="month" {% if filter=='month' %}selected{% endif %}>This Month</option>
+                <option value="range" {% if filter=='range' %}selected{% endif %}>Custom Range</option>
+            </select>
+            <label for="filter">Time Filter</label>
         </div>
 
-        <table class="striped highlight centered" style="width: 100%;">
+        <div class="input-field col s6 m4">
+            <input type="date" name="start_date" id="start_date" value="{{ start_date }}">
+            <label for="start_date">From</label>
+        </div>
 
-            <thead>
-                <tr>
-                    {% for header in headers %}
-                    <th {% if header=='Image' %}data-sortable="false" {% endif %}>
-                        {{ header }}
-                    </th>
-                    {% endfor %}
-                </tr>
-            </thead>
+        <div class="input-field col s6 m4">
+            <input type="date" name="end_date" id="end_date" value="{{ end_date }}">
+            <label for="end_date">To</label>
+        </div>
+    </div>
 
-            <tbody>
-                {% for receipt in receipts %}
-                <tr>
-                    <td>{{ receipt.store }}</td>
-                    <td>{{ receipt.date }}</td>
-                    <td>${{ "%.2f"|format(receipt.total) }}</td>
-                    <td>{{ receipt.category.name if receipt.category else "Uncategorized" }}</td>
-                    <td>
-                        {% if receipt.image_filename %}
-                        <!-- DESKTOP: show image -->
-                        <div class="receipt-thumb hide-on-small-only">
-                            <a class="modal-trigger" href="#modal-{{ loop.index }}">
-                                <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}">
-                            </a>
-                        </div>
+    <div class="center-align">
+        <button class="btn waves-effect blue" type="submit">
+            Apply <i class="material-icons right">filter_list</i>
+        </button>
+    </div>
+</form>
 
-                        <!-- MODAL (shared for both views) -->
-                        <div id="modal-{{ loop.index }}" class="modal">
-                            <div class="modal-content center-align">
-                                <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}">
-                            </div>
-                        </div>
-                        {% else %}
-                        No Image<br>
-                        {% endif %}
+<div class="total-display">
+    <h6 class="center-align">💰 Running Total: ${{ total }}</h6>
+</div>
 
-                        <!-- ✅ Buttons -->
-                        <div class="receipt-buttons">
-                            <!-- MOBILE-ONLY VIEW BUTTON -->
-                            {% if receipt.image_filename %}
-                            <div class="mobile-image-note hide-on-med-and-up center-align">
-                                <a class="btn-small blue modal-trigger" href="#modal-{{ loop.index }}">View</a>
-                            </div>
-                            {% endif %}
+<table class="striped highlight centered" style="width: 100%;">
 
-                            <!-- ALWAYS SHOW EDIT BUTTON -->
-                            <a href="{{ url_for('edit_receipt', receipt_id=receipt.id) }}"
-                                class="btn-small grey darken-1">Edit</a>
-                        </div>
-                    </td>
+    <thead>
+        <tr>
+            <!-- DEBUG: {{ headers }} -->
+
+            {% for header in headers %}
+            <th {% if header=='Image' %}data-sortable="false" {% endif %}>
+                {{ header }}
+            </th>
+            {% endfor %}
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for receipt in receipts %}
+        <tr>
+            <td>{{ receipt.datetime_added.strftime('%Y-%m-%d %H:%M') if receipt.datetime_added else "" }}</td>
+            <td>{{ receipt.store }}</td>
+            <td>{{ receipt.date }}</td>
+            <td>${{ "%.2f"|format(receipt.total) }}</td>
+            <td>{{ receipt.category.name if receipt.category else "Uncategorized" }}</td>
+            <td>
+                {% if receipt.image_filename %}
+                <!-- DESKTOP: show image -->
+                <div class="receipt-thumb hide-on-small-only">
+                    <a class="modal-trigger" href="#modal-{{ loop.index }}">
+                        <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}">
+                    </a>
+                </div>
+
+                <!-- MODAL (shared for both views) -->
+                <div id="modal-{{ loop.index }}" class="modal">
+                    <div class="modal-content center-align">
+                        <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}">
+                    </div>
+                </div>
+                {% else %}
+                No Image<br>
+                {% endif %}
+
+                <!-- ✅ Buttons -->
+                <div class="receipt-buttons">
+                    <!-- MOBILE-ONLY VIEW BUTTON -->
+                    {% if receipt.image_filename %}
+                    <div class="mobile-image-note hide-on-med-and-up center-align">
+                        <a class="btn-small blue modal-trigger" href="#modal-{{ loop.index }}">View</a>
+                    </div>
+                    {% endif %}
+
+                    <!-- ALWAYS SHOW EDIT BUTTON -->
+                    <a href="{{ url_for('edit_receipt', receipt_id=receipt.id) }}"
+                        class="btn-small grey darken-1">Edit</a>
+                </div>
+            </td>
 
 
 
 
-                </tr>
-                {% endfor %}
-            </tbody>
+        </tr>
+        {% endfor %}
+    </tbody>
 
-        </table>
+</table>
 
-        {% endblock %}
+<div id="refresh-bar" style="display:none; position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
+z-index: 1000;">
+    <button onclick="location.reload()" class="btn-large blue darken-2 pulse">
+        🔄 New Receipts Available — Refresh
+    </button>
+</div>
+
+{% endblock %}
 
 
-    {% block extra_scripts %}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const elems = document.querySelectorAll('select');
-            M.FormSelect.init(elems);
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const modals = document.querySelectorAll('.modal');
-            M.Modal.init(modals);
-        });
-    </script>
-    {% endblock %}
-    
+{% block extra_scripts %}
+
+<script>
+    const refreshBar = document.getElementById("refresh-bar");
+  
+    // Store the current latest datetime from the page itself
+    const latestSeenStr = "{{ receipts[0].datetime_added.isoformat() if receipts and receipts[0].datetime_added else '' }}";
+    const latestSeen = Date.parse(latestSeenStr);
+  
+    async function checkForUpdates() {
+      try {
+        const res = await fetch("/admin/last_update");
+        const data = await res.json();
+        const latestServer = Date.parse(data.last_update);
+  
+        if (!isNaN(latestServer) && latestServer > latestSeen) {
+          refreshBar.style.display = "block";
+        } else {
+          refreshBar.style.display = "none";  // just in case it was showing before
+        }
+      } catch (err) {
+        console.warn("Polling error:", err);
+      }
+    }
+  
+    setInterval(checkForUpdates, 15000);
+  </script>
+  
+  
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const elems = document.querySelectorAll('select');
+        M.FormSelect.init(elems);
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modals = document.querySelectorAll('.modal');
+        M.Modal.init(modals);
+    });
+</script>
+
+
+
+{% endblock %}
+
 
 
 

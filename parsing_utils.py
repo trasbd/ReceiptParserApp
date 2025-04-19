@@ -6,9 +6,11 @@ def extract_date(text):
         (r"\d{2}/\d{2}/\d{4}", "%m/%d/%Y"),
         (r"\d{4}-\d{2}-\d{2}", "%Y-%m-%d"),
         (r"\d{2}/\d{2}/\d{2}", "%m/%d/%y"),
+        (r"\b\d{1,2}/\d{1,2}/\d{2}\b", "%m/%d/%y"),
         (r"\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}\b", "%b %d, %Y"),
         (r"\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}\b", "%B %d, %Y"),
     ]
+
 
     for pattern, fmt in patterns:
         match = re.search(pattern, text)
@@ -19,14 +21,27 @@ def extract_date(text):
                 continue
     return None
 
+import re
+
 def extract_total(text):
     lines = text.splitlines()
+
+    # Check for TOTAL first (most common)
     for line in reversed(lines):
         if "total" in line.lower():
-            match = re.search(r"\d+\.\d{2}", line)
+            match = re.search(r"\$?\s*(\d+\.\d{2})", line)
             if match:
-                return match.group()
+                return match.group(1)
+
+    # Fallback: check for "Amount: $xxx.xx"
+    for line in reversed(lines):
+        if "amount" in line.lower():
+            match = re.search(r"\$?\s*(\d+\.\d{2})", line)
+            if match:
+                return match.group(1)
+
     return "Total not found"
+
 
 def extract_store_name(text):
     lines = text.strip().split("\n")

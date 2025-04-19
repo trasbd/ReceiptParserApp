@@ -79,11 +79,12 @@ def parse_receipt(filepath):
     with open(".\\temp\\output.txt", "w", encoding="utf-8") as f:
         f.write(text)
 
-    for key, parser in STORE_PARSERS.items():
-        if key in lower:
+    for matcher, parser in STORE_PARSERS:
+        if matcher(text):
             result = parser(text)
             result["image_filename"] = image_filename
             return result
+
 
     return {
         "store": extract_store_name(text),
