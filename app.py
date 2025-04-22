@@ -6,6 +6,31 @@ from datetime import datetime
 
 from receipt_parser import parse_receipt
 
+# Allow VSCode to attach to the debug server at port 5678
+import debugpy
+import debugpy
+import socket
+
+DEBUG_PORT = 5678
+
+# Only activate debugpy in development
+if os.getenv("ENABLE_DEBUGPY", "1") != "0":
+    try:
+        import debugpy
+
+        def is_port_open(port):
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                return s.connect_ex(('localhost', port)) != 0
+
+        if is_port_open(DEBUG_PORT):
+            debugpy.listen(("0.0.0.0", DEBUG_PORT))
+            print(f"🔗 debugpy is listening on port {DEBUG_PORT}")
+        else:
+            print(f"⚠️ Port {DEBUG_PORT} already in use, skipping debugpy.listen")
+
+    except Exception as e:
+        print(f"⚠️ debugpy setup failed: {e}")
+
 app = Flask(__name__)
 app.secret_key = "super_secret_key_here"  # 🔑 Set something strong here
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///receipts.db"
@@ -71,7 +96,7 @@ def index():
 def admin():
     from datetime import datetime, timedelta
 
-    filter_option = request.args.get("filter", "all")
+    filter_option = request.args.get("filter", "week")
     start_date_str = request.args.get("start_date")
     end_date_str = request.args.get("end_date")
     today = datetime.today()
@@ -109,6 +134,10 @@ def admin():
     receipts = query.all()
     total = sum(r.total for r in receipts)
 
+    latest_receipt = Receipt.query.order_by(Receipt.datetime_added.desc()).first()
+    latest_global = latest_receipt.datetime_added.isoformat() if latest_receipt else ""
+
+
     return render_template(
         "admin.html",
         receipts=receipts,
@@ -117,6 +146,7 @@ def admin():
         filter=filter_option,
         start_date=start_date_str or "",
         end_date=end_date_str or "",
+        latest_global=latest_global
     )
 
 

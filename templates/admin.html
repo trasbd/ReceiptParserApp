@@ -294,32 +294,99 @@ z-index: 1000;">
 {% block extra_scripts %}
 
 <script>
-    const refreshBar = document.getElementById("refresh-bar");
-  
-    // Store the current latest datetime from the page itself
-    const latestSeenStr = "{{ receipts[0].datetime_added.isoformat() if receipts and receipts[0].datetime_added else '' }}";
-    const latestSeen = Date.parse(latestSeenStr);
-  
-    async function checkForUpdates() {
-      try {
-        const res = await fetch("/admin/last_update");
-        const data = await res.json();
-        const latestServer = Date.parse(data.last_update);
-  
-        if (!isNaN(latestServer) && latestServer > latestSeen) {
-          refreshBar.style.display = "block";
-        } else {
-          refreshBar.style.display = "none";  // just in case it was showing before
+    document.addEventListener("DOMContentLoaded", function () {
+        const filterSelect = document.getElementById("filter");
+        const startDateInput = document.getElementById("start_date");
+        const endDateInput = document.getElementById("end_date");
+
+        function setDatesFromFilter(filterValue) {
+            const today = new Date();
+
+            function formatDate(date) {
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, "0");
+                const dd = String(date.getDate()).padStart(2, "0");
+                return `${yyyy}-${mm}-${dd}`;
+            }
+
+            if (filterValue === "day") {
+                const dateStr = formatDate(today);
+                startDateInput.value = endDateInput.value = dateStr;
+            } else if (filterValue === "week") {
+                const dayOfWeek = today.getDay(); // 0 = Sunday
+                const monday = new Date(today);
+                monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
+                const sunday = new Date(monday);
+                sunday.setDate(monday.getDate() + 6);
+                startDateInput.value = formatDate(monday);
+                endDateInput.value = formatDate(sunday);
+            } else if (filterValue === "month") {
+                const first = new Date(today.getFullYear(), today.getMonth(), 1);
+                const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                startDateInput.value = formatDate(first);
+                endDateInput.value = formatDate(last);
+            } else if (filterValue === "range") {
+                // do not change current values
+            } else {
+                // all time — clear both
+                startDateInput.value = "";
+                endDateInput.value = "";
+            }
+
+            M.updateTextFields(); // Refresh Materialize label UI
         }
-      } catch (err) {
-        console.warn("Polling error:", err);
-      }
+
+        // 👇 Set correct date range on load
+        setDatesFromFilter(filterSelect.value);
+
+        // 👇 Also handle changes after initial load
+        filterSelect.addEventListener("change", function () {
+            setDatesFromFilter(this.value);
+        });
+
+        [startDateInput, endDateInput].forEach(input => {
+            input.addEventListener("change", () => {
+                if (filterSelect.value !== "range") {
+                    filterSelect.value = "range";
+                    M.FormSelect.init(filterSelect); // refresh Materialize select UI
+                }
+            });
+        });
+    });
+
+    // 👇 Auto-switch filter to "range" if user edits start or end date
+
+
+</script>
+
+
+<script>
+    const refreshBar = document.getElementById("refresh-bar");
+
+    // Store the current latest datetime from the page itself
+    const latestSeenStr = "{{ latest_global }}";
+    const latestSeen = Date.parse(latestSeenStr);
+
+    async function checkForUpdates() {
+        try {
+            const res = await fetch("/admin/last_update");
+            const data = await res.json();
+            const latestServer = Date.parse(data.last_update);
+
+            if (!isNaN(latestServer) && latestServer > latestSeen) {
+                refreshBar.style.display = "block";
+            } else {
+                refreshBar.style.display = "none";  // just in case it was showing before
+            }
+        } catch (err) {
+            console.warn("Polling error:", err);
+        }
     }
-  
+
     setInterval(checkForUpdates, 15000);
-  </script>
-  
-  
+</script>
+
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const elems = document.querySelectorAll('select');

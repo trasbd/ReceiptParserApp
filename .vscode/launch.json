@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      
+      {
+        "name": "🐞 Attach to Flask (Remote)",
+        "type": "debugpy",
+        "request": "attach",
+        "connect": {
+          "host": "192.168.86.174",
+          "port": 5678
+        },
+        "justMyCode": false,
+        "pathMappings": [
+          {
+            "localRoot": "${workspaceFolder}",
+            "remoteRoot": "\\\\192.168.86.174\\ReceiptParserApp"
+          }
+        ]
+      },
+      {
+        "name": "🚀 Launch Flask (Remote-SSH)",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${workspaceFolder}/app.py",
+        "console": "integratedTerminal",
+        "env": {
+          "ENABLE_DEBUGPY": "0"
+        },
+        "args": [],
+        "justMyCode": false
+      }
+    ]
+  }
+  

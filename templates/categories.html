@@ -1,1 +1,15 @@
-<form method='POST'>{% for store in stores %}<div>{{ store[0] }} <select name='{{ store[0] }}'><option value='1'>Grocery</option><option value='__new__'>New Category</option></select><input name='new_{{ store[0] }}'></div>{% endfor %}<button>Save</button></form>
+<form method="POST">
+    {% for store in stores %}
+    <div>
+        <label>{{ store[0] }}</label>
+        <select name="{{ store[0] }}">
+            {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+            <option value="__new__">New Category</option>
+        </select>
+        <input type="text" name="new_{{ store[0] }}" placeholder="New category name (if any)">
+    </div>
+    {% endfor %}
+    <button type="submit">Save</button>
+</form>
