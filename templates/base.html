@@ -1,87 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}Receipt App{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>{% block title %}Receipt App{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" defer></script>
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <style>
+    body.goblin-mode {
+      background: url('https://cataas.com/cat/says/goblin') no-repeat center center fixed;
+      background-size: cover;
+      color: #0f0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      transition: all 0.3s ease-in-out;
+    }
 
+    body.goblin-mode h1, body.goblin-mode h2, body.goblin-mode h3 {
+      text-shadow: 0 0 5px #0f0;
+    }
 
-    <!-- Materialize CSS & Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" defer></script>
+    body.goblin-mode table {
+      transform: rotate(-2deg);
+      box-shadow: 0 0 10px lime;
+    }
 
-    <style>
-      body.goblin-mode {
-          background: url('https://cataas.com/cat/says/goblin') no-repeat center center fixed;
-          background-size: cover;
-          color: #0f0;
-          font-family: 'Comic Sans MS', cursive, sans-serif;
-          transition: all 0.3s ease-in-out;
-      }
+    body.goblin-mode td,
+    body.goblin-mode th {
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #0f0;
+    }
 
-      body.goblin-mode h1,
-      body.goblin-mode h2,
-      body.goblin-mode h3 {
-          text-shadow: 0 0 5px #0f0;
-      }
-
-      body.goblin-mode table {
-          transform: rotate(-2deg);
-          box-shadow: 0 0 10px lime;
-      }
-
-      body.goblin-mode td,
-      body.goblin-mode th {
-          background-color: rgba(0, 0, 0, 0.7);
-          color: #0f0;
-      }
+    .tight-icon {
+      margin-right: 4px;
+      vertical-align: text-bottom;
+      font-size: 1.3em;
+    }
   </style>
 
-    {% block extra_head %}{% endblock %}
+  {% block extra_head %}{% endblock %}
 </head>
 
 <body class="grey lighten-4 {% block body_class %}{% endblock %}">
   <div class="container" style="margin-top: 50px;">
+    
+    {% block page_header %}
+      <h4 class="center-align">
+        {% if header_icon is defined %}
+          <i class="material-icons" style="font-size: 1.3em; vertical-align: text-bottom;">{{ header_icon }}</i>
+        {% else %}
+        <img src="{{ url_for('static', filename='favicon.png') }}" alt="icon"
+        style="height: 1.3em; vertical-align: text-bottom; background: transparent;
+        filter: drop-shadow(5px 5px 1px rgba(0, 0, 0, 0.25));
+        border-radius: 8px;">
+   {% endif %}
+        {% block header_title %}{{ self.title() }}{% endblock %}
+      </h4>
+      
+      
+    {% endblock %}
+
     {% block content %}{% endblock %}
+
     <div class="section center-align">
-      <a href="/admin" class="btn-flat">📊 Parsed Receipts</a> |
-      <a href="/categories" class="btn-flat">📚 Categories</a>
-    </div>
+        <div class="footer-nav" id="footerNav">
+            <a href="/" class="btn-flat"> <i class="material-icons left tight-icon">upload_file</i> Upload</a>
+            <span class="pipe">|</span>
+            <a href="/admin" class="btn-flat"> <i class="material-icons left tight-icon">query_stats</i> Parsed Receipts</a>
+            <span class="pipe">|</span>
+            <a href="/categories" class="btn-flat"> <i class="material-icons left tight-icon">category</i> Categories</a>
+          </div>
+          
+      </div>
+      
   </div>
 
   {% block extra_scripts %}{% endblock %}
-
+  <script>
+    function fixFooterPipes() {
+      const footer = document.getElementById("footerNav");
+      const children = Array.from(footer.children);
+  
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].classList.contains("pipe")) {
+          const prev = children[i - 1];
+          const next = children[i + 1];
+  
+          // Only if there's a next link (don't touch final pipe if it's not followed)
+          if (next && next.offsetTop > prev.offsetTop) {
+            children[i].style.display = "none";
+          } else {
+            children[i].style.display = "inline";
+          }
+        }
+      }
+    }
+  
+    window.addEventListener("load", fixFooterPipes);
+    window.addEventListener("resize", fixFooterPipes);
+  </script>
+  
   <script>
     document.addEventListener("keydown", function (e) {
-        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "e") {
-            document.body.classList.toggle("goblin-mode");
-
-            if (document.body.classList.contains("goblin-mode")) {
-                console.log("😼 Goblin Cat Mode Activated");
-            } else {
-                console.log("🐾 Goblin Cat Mode Deactivated");
-            }
-        }
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "e") {
+        document.body.classList.toggle("goblin-mode");
+        console.log(document.body.classList.contains("goblin-mode") ? "😼 Goblin Cat Mode Activated" : "🐾 Goblin Cat Mode Deactivated");
+      }
     });
 
     const goblinSounds = {{ sounds | tojson }};
-
     function playRandomGoblinSound() {
-        if (!document.body.classList.contains("goblin-mode")) return;
-
-        const src = goblinSounds[Math.floor(Math.random() * goblinSounds.length)];
-        const audio = new Audio(src);
-        audio.play();
+      if (!document.body.classList.contains("goblin-mode")) return;
+      const src = goblinSounds[Math.floor(Math.random() * goblinSounds.length)];
+      new Audio(src).play();
     }
-
-    // Trigger on any click
     document.addEventListener("click", playRandomGoblinSound);
-
-</script>
-
+  </script>
 </body>
 </html>

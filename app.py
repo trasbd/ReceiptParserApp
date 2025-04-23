@@ -53,6 +53,19 @@ class Receipt(db.Model):
     total = db.Column(db.Float, nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=True)
     image_filename = db.Column(db.String(200), nullable=True)
+    card_number = db.Column(db.Integer, nullable=True)
+
+    __table_args__ = (
+        db.CheckConstraint("card_number BETWEEN 0 AND 9999", name="check_card_number_range"),
+    )
+
+class StoreCategoryMap(db.Model):
+    __tablename__ = "store_category_map"
+
+    store = db.Column(db.String(120), primary_key=True)  # Matches Receipt.store
+    category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=True)
+    category = db.relationship("Category", backref="store_mappings", lazy=True)
+
 
 @app.context_processor
 def inject_goblin_sounds():
@@ -176,27 +189,53 @@ def edit_receipt(receipt_id):
 def categories():
     stores = db.session.query(Receipt.store).distinct().all()
     categories = Category.query.all()
+    mappings = {
+        mapping.store: mapping.category_id
+        for mapping in StoreCategoryMap.query.all()
+    }
 
     if request.method == "POST":
         for store in stores:
             store_name = store[0]
             category_id = request.form.get(store_name)
+
             if category_id == "__new__":
                 new_name = request.form.get(f"new_{store_name}")
                 if new_name:
-                    new_cat = Category(name=new_name)
-                    db.session.add(new_cat)
-                    db.session.flush()
-                    category_id = new_cat.id
+                    # Check if the category already exists
+                    existing = Category.query.filter_by(name=new_name).first()
+                    if existing:
+                        category_id = existing.id
+                    else:
+                        new_cat = Category(name=new_name)
+                        db.session.add(new_cat)
+                        db.session.flush()
+                        category_id = new_cat.id
+
             if category_id:
-                matched_category = Category.query.get(int(category_id))
-                receipts = Receipt.query.filter_by(store=store_name).all()
-                for receipt in receipts:
-                    receipt.category = matched_category
+                # Update or create the store_category_map
+                mapping = StoreCategoryMap.query.filter_by(store=store_name).first()
+                if not mapping:
+                    mapping = StoreCategoryMap(store=store_name, category_id=category_id)
+                    db.session.add(mapping)
+                    update_receipts = True
+                elif str(mapping.category_id) != str(category_id):
+                    mapping.category_id = category_id
+                    update_receipts = True
+                else:
+                    update_receipts = False
+
+                # Only update receipt category_id if the store mapping changed
+                if update_receipts:
+                    matched_category = Category.query.get(int(category_id))
+                    for receipt in Receipt.query.filter_by(store=store_name).all():
+                        receipt.category = matched_category
+
         db.session.commit()
         return redirect("/categories")
 
-    return render_template("categories.html", stores=stores, categories=categories)
+    return render_template("categories.html", stores=stores, categories=categories, mappings=mappings)
+
 
 @app.route("/delete/<int:receipt_id>", methods=["POST"])
 def delete_receipt(receipt_id):

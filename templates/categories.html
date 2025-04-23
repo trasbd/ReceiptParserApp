@@ -1,15 +1,188 @@
-<form method="POST">
-    {% for store in stores %}
-    <div>
-        <label>{{ store[0] }}</label>
-        <select name="{{ store[0] }}">
-            {% for category in categories %}
-            <option value="{{ category.id }}">{{ category.name }}</option>
+{% extends "base.html" %}
+
+{% block title %}Categories{% endblock %}
+{% set header_icon = "category" %}
+
+{% block content %}
+<div class="container">
+  
+<div class="section center-align">
+  <a href="/" class="btn-flat">
+    <i class="material-icons left tight-icon">upload_file</i>UPLOAD
+  </a>
+  
+   |
+    <a href="/admin" class="btn-flat"><i class="material-icons left tight-icon">query_stats</i>Parsed Receipts</a>
+</div>
+  <div class="card" style="position: relative;">
+    <div class="card-content">
+      <form method="POST">
+        <table class="highlight responsive-table">
+          <thead>
+            <tr>
+              <th style="width: 33%;">Store</th>
+              <th style="width: 67%;">Category</th>
+            </tr>
+          </thead>
+          
+          <tbody>
+            {% for store in stores %}
+            <tr>
+              <td>{{ store[0] }}</td>
+              <td colspan="2">
+                <div class="category-wrapper">
+                  <select name="{{ store[0] }}" class="browser-default category-select">
+                    {% set current = mappings.get(store[0]) %}
+                    {% for cat in categories %}
+                      <option value="{{ cat.id }}" {% if current == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                    <option value="__new__" {% if not current %}selected{% endif %}>New Category</option>
+                  </select>
+                  <input type="text"
+                         class="new-category-input"
+                         name="new_{{ store[0] }}"
+                         placeholder="New category name"
+                         autocomplete="off">
+                </div>
+              </td>
+            </tr>
             {% endfor %}
-            <option value="__new__">New Category</option>
-        </select>
-        <input type="text" name="new_{{ store[0] }}" placeholder="New category name (if any)">
+          </tbody>
+        </table>
+
+        <!-- Floating Save Button -->
+        <button type="submit" class="btn-floating btn-large red tooltipped" id="save-btn"
+          style="display: none; position: fixed; bottom: 24px; right: calc(48% - 420px); z-index: 10;"
+          data-tooltip="Save changes">
+          <i class="material-icons">save</i>
+        </button>
+      </form>
     </div>
-    {% endfor %}
-    <button type="submit">Save</button>
-</form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form');
+    const saveBtn = document.getElementById('save-btn');
+
+    const initialValues = new Map();
+    form.querySelectorAll('select, input[type="text"]').forEach(el => {
+      initialValues.set(el.name, el.value);
+    });
+
+    function checkForChanges() {
+      for (const [name, initial] of initialValues.entries()) {
+        const current = form.elements[name]?.value;
+        if (current !== initial) {
+          saveBtn.style.display = 'block';
+          return;
+        }
+      }
+      saveBtn.style.display = 'none';
+    }
+
+    form.addEventListener("change", checkForChanges);
+    form.addEventListener("input", checkForChanges);
+
+    // Handle dynamic swap of dropdown/input
+    document.querySelectorAll(".category-select").forEach(select => {
+      const wrapper = select.closest(".category-wrapper");
+      const input = wrapper.querySelector(".new-category-input");
+
+      if (select.value === "__new__") {
+        select.style.display = "none";
+        input.style.display = "block";
+        input.focus();
+      } else {
+        select.style.display = "block";
+        input.style.display = "none";
+      }
+
+      select.addEventListener("change", function () {
+        if (this.value === "__new__") {
+          this.style.display = "none";
+          input.style.display = "block";
+          input.focus();
+        }
+      });
+
+      input.addEventListener("blur", function () {
+  if (this.value.trim() === "") {
+    input.style.display = "none";
+    select.style.display = "block";
+    select.value = select.querySelector("option:not([value='__new__'])")?.value;
+
+    // 🔁 Re-check for changes now that values reverted
+    checkForChanges();
+  }
+});
+
+    });
+  });
+</script>
+
+<style>
+  .category-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .category-wrapper select,
+  .category-wrapper input[type="text"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 40px;
+    font-size: 16px;
+    padding: 0 12px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+  }
+
+  .category-wrapper input[type="text"] {
+    display: none;
+  }
+
+  .category-wrapper select:focus,
+  .category-wrapper input[type="text"]:focus {
+    border-color: #26a69a;
+    outline: none;
+  }
+
+  select.browser-default {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: white;
+    text-align: left !important;
+    padding-left: 8px !important;
+  }
+
+  option {
+    text-align: left !important;
+  }
+
+  .select-wrapper input.select-dropdown {
+    display: none !important;
+  }
+
+  ul.dropdown-content.select-dropdown li > span {
+    text-align: left !important;
+    justify-content: flex-start !important;
+    display: flex !important;
+  }
+</style>
+<style>
+  .tight-icon {
+    margin-right: 4px !important; /* default is 10px, reduce as needed */
+    vertical-align: middle;
+    font-size: 1.2em; /* optional tweak */
+  }
+</style>
+
+{% endblock %}
