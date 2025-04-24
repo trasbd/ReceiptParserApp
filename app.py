@@ -104,25 +104,17 @@ def admin():
     )
 
     if filter_option == "day":
-        query = query.filter(Receipt.date == literal(today.date()))  # type: ignore
+        query = query.filter(Receipt.date == today.strftime("%Y-%m-%d")) # type: ignore
     elif filter_option == "week":
         start = today - timedelta(days=today.weekday())
         end = start + timedelta(days=6)
-
-        query = query.filter(cast(Receipt.date, Date).between(start, end))
-
-    elif filter_option == "month":
-
         query = query.filter(
-            and_(
-                cast(Receipt.date, Date) >= today.replace(day=1).date(),
-                cast(Receipt.date, Date)
-                < (today.replace(day=1) + timedelta(days=32)).replace(day=1).date(),
-            )
-        )
-
+            Receipt.date.between(start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"))) # type: ignore
+    elif filter_option == "month":
+        query = query.filter(Receipt.date.startswith(today.strftime("%Y-%m"))) # type: ignore
     elif filter_option == "range" and start_date and end_date:
-        query = query.filter(cast(Receipt.date, Date).between(start_date, end_date))
+        query = query.filter(
+            Receipt.date.between(start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"))) # type: ignore
 
     receipts = query.all()
     total = sum(r.total for r in receipts)

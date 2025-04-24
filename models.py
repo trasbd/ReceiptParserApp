@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, CheckConstraint
+from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, CheckConstraint, DateTime  
 from sqlalchemy.orm import relationship
 from flask_sqlalchemy import SQLAlchemy
 
@@ -16,7 +16,7 @@ class Category(db.Model):
 
 class Receipt(db.Model):
     id = Column(Integer, primary_key=True)
-    datetime_added = Column(Date, default=datetime.now)
+    datetime_added = Column(DateTime, default=datetime.now)
     store = Column(String(120), nullable=False)
     date = Column(Date)
     total = Column(Float, nullable=False)
