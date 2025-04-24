@@ -1,0 +1,11 @@
+{
+  "files.associations": {
+    "*.html": "jinja-html",
+    "*.py": "python"
+  },
+  "python.analysis.typeCheckingMode": "basic",
+  "python.languageServer": "Pylance",
+  "python.defaultInterpreterPath": ".\\venv\\Scripts\\python.exe",
+  "python.analysis.stubPath": "typings",
+  "python.analysis.autoSearchPaths": true
+}

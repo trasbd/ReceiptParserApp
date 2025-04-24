@@ -1,21 +1,32 @@
 from datetime import datetime
+import fitz
 from pdf2image import convert_from_path
 from PIL import Image
 import os
 import cv2
 import pytesseract
 import re
-import fitz  # PyMuPDF
+from fitz import Page  # PyMuPDF
 
 from store_parsers import STORE_PARSERS
 from parsing_utils import *
+from models import CardSuffix
 
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 
-def pdf_has_text(filepath):
+def extract_card_last_four(text, known_suffixes):
+    matches = re.findall(r"\b\d{4}\b", text)
+    for match in matches:
+        if match in known_suffixes:
+            return int(match)
+    return None
+
+
+def pdf_has_text(filepath: str) -> bool:
     with fitz.open(filepath) as pdf:
-        for page in pdf:
+        for i in range(len(pdf)):
+            page: Page = pdf[i]
             if page.get_text().strip():
                 return True
     return False
@@ -72,6 +83,7 @@ def extract_text_from_file(filepath):
         text = pytesseract.image_to_string(gray)
     return text, filename
 
+
 def parse_receipt(filepath):
     text, image_filename = extract_text_from_file(filepath)
     lower = text.lower()
@@ -79,16 +91,20 @@ def parse_receipt(filepath):
     with open(".\\temp\\output.txt", "w", encoding="utf-8") as f:
         f.write(text)
 
+    known_suffixes = [c.last_four for c in CardSuffix.query.all()]
+    matched_suffix = extract_card_last_four(text, known_suffixes)
+
     for matcher, parser in STORE_PARSERS:
         if matcher(text):
             result = parser(text)
             result["image_filename"] = image_filename
+            result["card_number"] = matched_suffix
             return result
-
 
     return {
         "store": extract_store_name(text),
         "date": extract_date(text),
         "total": extract_total(text),
         "image_filename": image_filename,
+        "card_number": matched_suffix,
     }
