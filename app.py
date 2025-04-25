@@ -195,7 +195,7 @@ def edit_receipt(receipt_id):
             flash("Invalid date format. Use YYYY-MM-DD.")
             return redirect(url_for("edit_receipt", receipt_id=receipt.id))
 
-        receipt.total = float(request.form["total"])
+        receipt.total = float(request.form["total"].replace("$",""))
         receipt.card_number = int(request.form.get("card_number") or 0)
 
         category_id = request.form.get("category")

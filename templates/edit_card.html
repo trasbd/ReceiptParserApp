@@ -7,7 +7,7 @@
 
 <div class="valign-wrapper" style="display: flex; align-items: center; justify-content: center;">
     <div class="col s12" style="max-width: 600px; width: 100%;">
-        <form method="POST" class="card-panel">
+        <form method="POST" class="card-panel" autocomplete="off">
             <div class="input-field">
                 <select name="card_id" class="browser-default" id="card-select">
                     <option value="" disabled selected>Select a card to edit</option>
@@ -45,8 +45,20 @@
         const nameField = document.getElementById("card-name");
         const lastFourField = document.getElementById("card-last-four");
 
+        function shouldSwitchToNew() {
+            const selectedId = select.value;
+            return selectedId === "" || selectedId === null;
+        }
+
+        function switchToNewCard() {
+            if (shouldSwitchToNew()) {
+                select.value = "__new__";
+            }
+        }
+
         select.addEventListener("change", function () {
             const selectedId = this.value;
+
             if (selectedId === "__new__") {
                 nameField.value = "";
                 lastFourField.value = "";
@@ -55,11 +67,14 @@
                 if (card) {
                     nameField.value = card.name;
                     lastFourField.value = card.last_four;
-                    nameField.focus();  // re-activates labels
+                    nameField.focus();
                     lastFourField.focus();
                 }
             }
         });
+
+        nameField.addEventListener("input", switchToNewCard);
+        lastFourField.addEventListener("input", switchToNewCard);
     });
 </script>
 {% endblock %}

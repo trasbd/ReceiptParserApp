@@ -45,9 +45,9 @@ def extract_text_from_file(filepath):
     filename = os.path.basename(filepath)
 
     if filepath.lower().endswith(".pdf"):
-
         # Convert all pages of the PDF into images
-        images = convert_from_path(filepath)  # all pages
+        images = images = convert_from_path(filepath, poppler_path=os.path.join(os.getcwd(), "poppler", "Library", "bin"))
+
 
         # Get total width and total height (stacked)
         width = max(img.width for img in images)
@@ -62,18 +62,25 @@ def extract_text_from_file(filepath):
             combined.paste(img, (0, y_offset))
             y_offset += img.height
 
-        # Save the final combined image
+        # Save the final combined image with unique name
         if combined:
             image = combined
-            image_filename = filename.replace(".pdf", ".jpg")
-            save_path = os.path.join("static/uploads", image_filename)
-            image.save(save_path, "JPEG")
+            name, ext = os.path.splitext(filename.replace(".pdf", ".jpg"))
+            upload_dir = "static/uploads"
+            counter = 1
+            unique_filename = f"{name}{ext}"
+            save_path = os.path.join(upload_dir, unique_filename)
 
-            filename = image_filename
+            while os.path.exists(save_path):
+                unique_filename = f"{name}_{counter}{ext}"
+                save_path = os.path.join(upload_dir, unique_filename)
+                counter += 1
+
+            image.save(save_path, "JPEG")
+            filename = unique_filename
 
             if pdf_has_text(filepath):
                 text = extract_text_from_pdf(filepath)
-
             else:
                 text = pytesseract.image_to_string(image)
 
@@ -81,6 +88,7 @@ def extract_text_from_file(filepath):
         img = cv2.imread(filepath)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         text = pytesseract.image_to_string(gray)
+
     return text, filename
 
 
