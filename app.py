@@ -137,6 +137,46 @@ def admin():
         latest_global=latest_global,
     )
 
+@app.route("/edit_card", methods=["GET", "POST"])
+def edit_card():
+    cards = CardSuffix.query.order_by(CardSuffix.name).all()
+    selected_card_id = request.form.get("card_id") if request.method == "POST" else request.args.get("card_id")
+
+    card = None
+    if selected_card_id and selected_card_id != "__new__":
+        card = CardSuffix.query.get(int(selected_card_id))
+
+    if request.method == "POST":
+        name = request.form["name"]
+        last_four = request.form["last_four"]
+
+        if selected_card_id == "__new__" or not selected_card_id:
+            existing = CardSuffix.query.filter_by(last_four=last_four).first()
+            if existing:
+                flash("Card with this number already exists.")
+            else:
+                new_card = CardSuffix(name=name, last_four=last_four)
+                db.session.add(new_card)
+        else:
+            if card:
+                card.name = name
+                card.last_four = last_four
+
+        db.session.commit()
+        return redirect("/admin")
+
+    # 🔧 Convert cards to dicts so we can serialize to JSON
+    cards_dict = [{"id": c.id, "name": c.name, "last_four": c.last_four} for c in cards]
+
+    return render_template(
+        "edit_card.html",
+        cards=cards_dict,
+        selected_card_id=selected_card_id,
+        card_name=(card.name if card else ""),
+        last_four=(card.last_four if card else "")
+    )
+
+
 
 @app.route("/edit/<int:receipt_id>", methods=["GET", "POST"])
 def edit_receipt(receipt_id):
