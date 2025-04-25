@@ -3,5 +3,5 @@ uploads*
 poppler*
 receipts.db
 node_modules*
-venv/
+.venv/
 temp/

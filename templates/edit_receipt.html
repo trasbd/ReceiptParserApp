@@ -20,15 +20,22 @@
             </div>
 
             <div class="input-field">
-                <input name="total" id="total" type="text" pattern="^\\$?\\d+(\\.\\d{2})?$"
+                <input name="total" id="total" type="text" pattern="^\$?\d+(\.\d{2})?$"
                     value="${{ '%.2f'|format(receipt.total|float) }}" required>
-                    <label for="total" class="active">Total</label>
+                <label for="total" class="active">Total</label>
             </div>
 
-            <div class="input-field">
-                <input name="card_number" id="card_number" type="number" min="0" max="9999"
-                    value="{{ receipt.card_number or '' }}">
-                <label for="card_number" class="active">Card Number</label>
+            <div class="input-field category-wrapper">
+                <select name="card_number" class="browser-default"
+                    style="display: {{ 'none' if selected_card == '__new__' else 'block' }};">
+                    <option value="" disabled {% if not receipt.card_number %}selected{% endif %}>Select a card</option>
+                    {% for card in cards %}
+                    <option value="{{ card.last_four }}" {% if receipt.card_number and
+                        receipt.card_number==card.last_four|int %}selected{% endif %}>
+                        {{ card.name }} x{{ card.last_four }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="input-field category-wrapper">
@@ -73,8 +80,20 @@
 <div class="col s12 m5">
     <div class="card-panel" id="image-card"
         style="padding: 1rem; display: flex; align-items: center; justify-content: center; height: 100%;">
-        <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" alt="Receipt Image"
-            style="max-width: 100%; max-height: 100%; object-fit: contain;">
+
+        <a class="modal-trigger" href="#modal-1" style="display: block; height: 100%; width: 100%;">
+            <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" alt="Receipt Image"
+                style="height: 100%; width: auto; max-width: 100%; object-fit: contain; display: block; margin: 0 auto;">
+        </a>
+
+
+    </div>
+
+</div>
+<div id="modal-1" class="modal">
+    <div class="modal-content center-align">
+        <img src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}"
+            style="max-height: auto; width: 100%;">
     </div>
 </div>
 {% endif %}
@@ -123,9 +142,7 @@
                 }
             });
         }
-    });
 
-    document.addEventListener("DOMContentLoaded", function () {
         const selects = document.querySelectorAll(".category-select");
         const inputs = document.querySelectorAll(".new-category-input");
 
@@ -152,6 +169,11 @@
                 }
             });
         });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const modals = document.querySelectorAll('.modal');
+        M.Modal.init(modals);
     });
 </script>
 

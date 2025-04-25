@@ -104,17 +104,21 @@ def admin():
     )
 
     if filter_option == "day":
-        query = query.filter(Receipt.date == today.strftime("%Y-%m-%d")) # type: ignore
+        query = query.filter(Receipt.date == today.strftime("%Y-%m-%d"))  # type: ignore
     elif filter_option == "week":
         start = today - timedelta(days=today.weekday())
         end = start + timedelta(days=6)
         query = query.filter(
-            Receipt.date.between(start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"))) # type: ignore
+            Receipt.date.between(start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")) # type: ignore
+        )  # type: ignore
     elif filter_option == "month":
-        query = query.filter(Receipt.date.startswith(today.strftime("%Y-%m"))) # type: ignore
+        query = query.filter(Receipt.date.startswith(today.strftime("%Y-%m")))  # type: ignore
     elif filter_option == "range" and start_date and end_date:
         query = query.filter(
-            Receipt.date.between(start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"))) # type: ignore
+            Receipt.date.between( # type: ignore
+                start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")
+            )
+        )  # type: ignore
 
     receipts = query.all()
     total = sum(r.total for r in receipts)
@@ -138,6 +142,7 @@ def admin():
 def edit_receipt(receipt_id):
     receipt = Receipt.query.get_or_404(receipt_id)
     categories = Category.query.all()
+    cards = CardSuffix.query.order_by(CardSuffix.name).all()
 
     if request.method == "POST":
         receipt.store = request.form["store"]
@@ -172,7 +177,12 @@ def edit_receipt(receipt_id):
         db.session.commit()
         return redirect("/admin")
 
-    return render_template("edit_receipt.html", receipt=receipt, categories=categories)
+    return render_template(
+        "edit_receipt.html",
+        receipt=receipt,
+        categories=categories,
+        cards=cards,  # ← send to template
+    )
 
 
 @app.route("/categories", methods=["GET", "POST"])

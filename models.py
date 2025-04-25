@@ -51,6 +51,8 @@ class StoreCategoryMap(db.Model):
 class CardSuffix(db.Model):
     id = Column(Integer, primary_key=True)
     last_four = Column(String(4), unique=True, nullable=False)
+    name = Column(String(120))
 
-    def __init__(self, last_four: str):
+    def __init__(self, last_four: str, name: str):
         self.last_four = last_four
+        self.name = name

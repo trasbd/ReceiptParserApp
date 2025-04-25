@@ -6,3 +6,4 @@ Pillow
 pdf2image
 PyMuPDF
 debugpy
+types-SQLAlchemy
