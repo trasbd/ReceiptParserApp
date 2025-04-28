@@ -52,21 +52,27 @@ Then go to `http://localhost:5000` in your browser.
 
 ---
 
-## 🧠 Custom Receipt Parsing
+## 🧐 Custom Receipt Parsing
 
-In `receipt_parser.py`, define store-specific parsing logic:
+Store-specific parsing logic is defined in `store_parsers.py`.  
+Each store has its own parser function, and simple matching rules determine which parser is used.
 
 ```python
-def parse_walmart(text):
-    # Your regex rules for Walmart receipts
-    ...
+# store_parsers.py
 
-STORE_PARSERS = {
-    'walmart': parse_walmart,
-    'target': parse_target,
+def parse_walmart(text):
+    return parse_generic_store(text, "Walmart")
+
+STORE_PARSERS = [
+    (lambda text: "walmart" in text.lower(), parse_walmart),
+    (lambda text: "mcdonald" in text.lower(), parse_mcdonalds),
     ...
-}
+]
 ```
+
+- **`parse_generic_store`** is used for most stores.
+- Some stores (like McDonald's or Taco Bell) use custom regex extraction.
+- When uploading a receipt, the app automatically selects the appropriate parser based on keywords found in the OCR text.
 
 ---
 
