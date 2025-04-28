@@ -7,7 +7,7 @@ A Flask-based web app for uploading and parsing receipts from images or PDFs. It
 ## ✨ Features
 
 - 📤 Upload **images or PDFs** of receipts
-- 🔍 Extract **store**, **date**, and **total** using Tesseract OCR
+- 🔍 Extract **store**, **date**, **total**, and **card numbers** using Tesseract OCR
 - 🧠 Supports **custom parsing logic per store** (e.g., Walmart, Target)
 - 🗂️ Assign categories to stores — either from dropdown or by creating new ones
 - 📅 Filter receipts by **day**, **week**, **month**, or **custom date range**
