@@ -12,6 +12,9 @@ def parse_generic_store(text, store_name, total_pattern=r"Total\s*\$?(\d+\.\d{2}
 def parse_walmart(text):
     return parse_generic_store(text, "Walmart")
 
+def parse_amazon(text):
+    return parse_generic_store(text=text, store_name="Amazon.com")
+
 def parse_schnucks(text):
     return parse_generic_store(text, "Schnucks")
 
@@ -52,4 +55,5 @@ STORE_PARSERS = [
     (lambda t: "mcdonald" in t.lower(), parse_mcdonalds),
     (lambda t: "mild sauce packet" in t.lower(), parse_tacobell),
     (lambda t: re.search(r"\bON\s*[-.\s]*THE\s*[-.\s]*RUN\b", t, re.IGNORECASE), parse_on_the_run),
+    (lambda t: "Amazon.com".lower() in t.lower(), parse_amazon),
 ]

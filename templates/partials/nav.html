@@ -1,0 +1,60 @@
+<div class="section center-align">
+  <div class="footer-nav" id="footerNav">
+    <a href="/" class="btn-flat"> <i class="material-icons left tight-icon">upload_file</i> Upload</a>
+    <span class="pipe">|</span>
+    <a href="/admin" class="btn-flat"> <i class="material-icons left tight-icon">query_stats</i> Parsed Receipts</a>
+    <span class="pipe">|</span>
+    <a href="/categories" class="btn-flat"> <i class="material-icons left tight-icon">category</i> Categories</a>
+    <span class="pipe">|</span>
+    <a href="/edit_card" class="btn-flat"> <i class="material-icons left tight-icon">credit_card</i> Cards</a>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const currentPath = window.location.pathname;
+    const links = document.querySelectorAll("#footerNav a");
+
+    links.forEach(link => {
+      if (link.getAttribute("href") === currentPath) {
+        link.classList.add("bold");
+      }
+    });
+  });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const topNav = document.getElementById('topNav');
+
+  // Check if the page is scrollable
+  const hasScrollbar = document.documentElement.scrollHeight > document.documentElement.clientHeight;
+
+  if (hasScrollbar) {
+    topNav.style.display = 'block';  // Show top nav if scrollbar exists
+  } else {
+    topNav.style.display = 'none';   // Keep it hidden if no scroll needed
+  }
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const topNav = document.getElementById('topNav');
+
+  // Check if the page is scrollable
+  const hasScrollbar = document.documentElement.scrollHeight > document.documentElement.clientHeight;
+
+  if (hasScrollbar) {
+    topNav.style.display = 'block';  // Show top nav if scrollbar exists
+  } else {
+    topNav.style.display = 'none';   // Keep it hidden if no scroll needed
+  }
+});
+</script>
+
+
+<style>
+.bold {
+  font-weight: bold;
+}
+</style>

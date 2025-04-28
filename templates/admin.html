@@ -112,6 +112,12 @@
     th[data-sortable="false"] {
         cursor: default;
     }
+
+    .tight-icon {
+        margin-right: 4px;
+        vertical-align: text-bottom;
+        font-size: 1.3em;
+    }
 </style>
 
 
@@ -176,10 +182,6 @@
 {% endblock %}
 
 {% block content %}
-<div class="section center-align">
-    <a href="/" class="btn-flat">⬅ Upload</a> |
-    <a href="/categories" class="btn-flat">📚 Categories</a>
-</div>
 <form method="GET" class="filters card-panel">
     <div class="row">
         <div class="input-field col s12 m4">
@@ -212,7 +214,11 @@
 </form>
 
 <div class="total-display">
-    <h6 class="center-align">💰 Running Total: ${{ total }}</h6>
+    <h6 class="center-align"><svg class="tight-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+            fill="#000000">
+            <path
+                d="M440-200h80v-40h40q17 0 28.5-11.5T600-280v-120q0-17-11.5-28.5T560-440H440v-40h160v-80h-80v-40h-80v40h-40q-17 0-28.5 11.5T360-520v120q0 17 11.5 28.5T400-360h120v40H360v80h80v40ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-560v-160H240v640h480v-480H520ZM240-800v160-160 640-640Z" />
+        </svg>Running Total: ${{ total }}</h6>
 </div>
 
 <table class="striped highlight centered" style="width: 100%;">
