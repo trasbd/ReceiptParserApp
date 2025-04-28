@@ -93,10 +93,27 @@ ReceiptParserApp/
 
 ## 📸 Screenshots
 
-_You can include screenshots here of:_
-- The upload form
-- The admin filter dashboard
-- The category assignment UI
+### Upload Form
+Upload a receipt (image or PDF).
+![Upload Form](static/screenshots/upload_form.png)
+
+---
+
+### Parsed Receipts Dashboard
+View and filter receipts with a running total.
+![Parsed Receipts Dashboard](static/screenshots/parsed_receipts.png)
+
+---
+
+### Category Assignment
+Assign categories to stores or create new ones.
+![Category Assignment](static/screenshots/category_assignment.png)
+
+---
+
+### Edit Receipt
+Edit store name, date, total, and category — with receipt image preview.
+![Edit Receipt](static/screenshots/edit_receipt.png)
 
 ---
 
