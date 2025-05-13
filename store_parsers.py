@@ -1,13 +1,14 @@
 import re
-from parsing_utils import extract_date
+from typing import Optional
+from parsing_utils import extract_date, extract_total
 
-def parse_generic_store(text, store_name, total_pattern=r"Total\s*\$?(\d+\.\d{2})"):
-    total = re.search(total_pattern, text)
+def parse_generic_store(text: str, store_name: str, total_pattern: Optional[str] = None) -> dict:
     return {
         "store": store_name,
         "date": extract_date(text),
-        "total": total.group(1) if total else 0,
+        "total": extract_total(text, total_pattern),
     }
+
 
 def parse_walmart(text):
     return parse_generic_store(text, "Walmart")

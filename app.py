@@ -10,6 +10,19 @@ from models import CardSuffix, Category, Receipt, StoreCategoryMap, db
 from receipt_parser import parse_receipt
 
 
+def get_unique_filename(directory, original_filename):
+    name, ext = os.path.splitext(original_filename)
+    counter = 1
+    unique_filename = f"{name}{ext}"
+    save_path = os.path.join(directory, unique_filename)
+
+    while os.path.exists(save_path):
+        unique_filename = f"{name}_{counter}{ext}"
+        save_path = os.path.join(directory, unique_filename)
+        counter += 1
+
+    return unique_filename, save_path
+
 # Allow VSCode to attach to the debug server at port 5678
 DEBUG_PORT = 5678
 if os.getenv("ENABLE_DEBUGPY", "1") != "0":
@@ -55,7 +68,10 @@ def index():
         file = request.files["receipt"]
         if file and file.filename:
             filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            upload_dir = app.config["UPLOAD_FOLDER"]
+
+            # Ensure unique name before saving
+            unique_filename, filepath = get_unique_filename(upload_dir, filename)
             file.save(filepath)
 
             result = parse_receipt(filepath)
@@ -84,7 +100,7 @@ def index():
 
 @app.route("/admin")
 def admin():
-    filter_option = request.args.get("filter", "week")
+    filter_option = request.args.get("filter", "month")
     start_date_str = request.args.get("start_date")
     end_date_str = request.args.get("end_date")
     today = datetime.today()
@@ -302,4 +318,4 @@ if __name__ == "__main__":
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     with app.app_context():
         db.create_all()
-    app.run(debug=True, host="0.0.0.0")
+    app.run(debug=True, host="0.0.0.0", use_reloader=False)

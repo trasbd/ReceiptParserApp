@@ -67,17 +67,10 @@ def extract_text_from_file(filepath):
             image = combined
             name, ext = os.path.splitext(filename.replace(".pdf", ".jpg"))
             upload_dir = "static/uploads"
-            counter = 1
-            unique_filename = f"{name}{ext}"
-            save_path = os.path.join(upload_dir, unique_filename)
-
-            while os.path.exists(save_path):
-                unique_filename = f"{name}_{counter}{ext}"
-                save_path = os.path.join(upload_dir, unique_filename)
-                counter += 1
+            filename = f"{name}{ext}"
+            save_path = os.path.join(upload_dir, filename)
 
             image.save(save_path, "JPEG")
-            filename = unique_filename
 
             if pdf_has_text(filepath):
                 text = extract_text_from_pdf(filepath)

@@ -14,12 +14,12 @@
         "pathMappings": [
           {
             "localRoot": "${workspaceFolder}",
-            "remoteRoot": "\\\\192.168.86.174\\ReceiptParserApp"
+            "remoteRoot": "\\\\192.168.89.86\\ReceiptParserApp"
           }
         ]
       },
       {
-        "name": "🚀 Launch Flask (Remote-SSH)",
+        "name": "🚀 Launch Flask (Local/SSH)",
         "type": "debugpy",
         "request": "launch",
         "program": "${workspaceFolder}/app.py",

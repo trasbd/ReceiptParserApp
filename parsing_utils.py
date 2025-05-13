@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from typing import Optional
 
 def extract_date(text):
     patterns = [
@@ -23,24 +24,34 @@ def extract_date(text):
 
 import re
 
-def extract_total(text):
+def extract_total(text: str, total_pattern: Optional[str] = None) -> float:
     lines = text.splitlines()
 
-    # Check for TOTAL first (most common)
+    # Default pattern if none is provided or blank
+    if not total_pattern:
+        total_pattern = r"(?<!sub)\btotal\b[\s:\n]*\$?(\d+\.\d{2})\b(?!\s*purchase)"
+
+    # Try full-text regex match first
+    match = re.search(total_pattern, text, re.IGNORECASE)
+    if match:
+        return float(match.group(1))
+
+    # Fallback 1: line with "total"
     for line in reversed(lines):
         if "total" in line.lower():
             match = re.search(r"\$?\s*(\d+\.\d{2})", line)
             if match:
-                return match.group(1)
+                return float(match.group(1))
 
-    # Fallback: check for "Amount: $xxx.xx"
+    # Fallback 2: line with "amount"
     for line in reversed(lines):
         if "amount" in line.lower():
             match = re.search(r"\$?\s*(\d+\.\d{2})", line)
             if match:
-                return match.group(1)
+                return float(match.group(1))
 
-    return "Total not found"
+    return 0.0
+
 
 
 def extract_store_name(text):
