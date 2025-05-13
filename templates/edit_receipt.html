@@ -19,8 +19,9 @@
             </div>
 
             <div class="input-field">
-                <input name="total" id="total" type="text" pattern="^\$?\d+(\.\d{2})?$"
+                <input name="total" id="total" type="text" pattern="^\$?-?\d+(\.\d{2})?$"
                     value="${{ '%.2f'|format(receipt.total|float) }}" required>
+
                 <label for="total" class="active">Total</label>
             </div>
 
@@ -132,7 +133,7 @@
         const totalField = document.getElementById("total");
         if (totalField) {
             totalField.addEventListener("blur", () => {
-                let val = totalField.value.replace(/[^0-9.]/g, "");
+                let val = totalField.value.replace(/[^0-9.-]/g, "");
                 if (val) {
                     const parsed = parseFloat(val);
                     if (!isNaN(parsed)) {
